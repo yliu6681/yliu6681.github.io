@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ashe 26S4 六集上 History Word Adventure</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg: #0f0e17;
+  --card: #1a1932;
+  --accent1: #ff6e6c;
+  --accent2: #67e8f9;
+  --accent3: #fbbf24;
+  --accent4: #a78bfa;
+  --accent5: #34d399;
+  --text: #fffffe;
+  --dim: #a7a9be;
+}
+
+body {
+  font-family: 'Fredoka', 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Stars background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 30% 50%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1.5px 1.5px at 50% 10%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1px 1px at 70% 40%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 90% 70%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 20% 80%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 60% 90%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 80% 15%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 40% 65%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 15% 45%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 55% 35%, rgba(255,255,255,0.5), transparent);
+  background-size: 200px 200px, 300px 300px, 250px 250px, 180px 180px, 220px 220px, 280px 280px, 320px 320px, 190px 190px, 260px 260px, 310px 310px, 170px 170px, 240px 240px;
+  animation: twinkle 4s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.screen {
+  display: none;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+.screen.active { display: flex; }
+
+/* ========== START SCREEN ========== */
+#startScreen {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 30px;
+  text-align: center;
+}
+
+.game-logo {
+  font-size: clamp(2.2rem, 6vw, 3.8rem);
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent1), var(--accent3), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.3;
+  animation: logoFloat 3s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.game-subtitle {
+  font-size: 1.1rem;
+  color: var(--dim);
+  max-width: 400px;
+}
+
+.planet {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--accent1), #7f1d1d);
+  box-shadow: 0 0 60px rgba(255,110,108,0.4), inset -20px -20px 40px rgba(0,0,0,0.3);
+  animation: planetSpin 8s linear infinite;
+  margin: 10px 0;
+  position: relative;
+}
+.planet::after {
+  content: '';
+  position: absolute;
+  width: 180px; height: 20px;
+  border: 3px solid rgba(255,110,108,0.5);
+  border-radius: 50%;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%) rotateX(75deg);
+}
+
+@keyframes planetSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.name-input-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.name-input-wrap label {
+  font-size: 1.2rem;
+  color: var(--accent3);
+}
+
+.name-input {
+  background: var(--card);
+  border: 2px solid var(--accent4);
+  border-radius: 16px;
+  padding: 14px 24px;
+  font-size: 1.2rem;
+  color: var(--text);
+  font-family: inherit;
+  width: 280px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.name-input:focus {
+  border-color: var(--accent2);
+  box-shadow: 0 0 20px rgba(103,232,249,0.3);
+}
+.name-input::placeholder { color: var(--dim); }
+
+.start-btn {
+  background: linear-gradient(135deg, var(--accent1), #ff8a65);
+  border: none;
+  border-radius: 20px;
+  padding: 16px 48px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 8px 25px rgba(255,110,108,0.4);
+  margin-top: 8px;
+}
+.start-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 12px 35px rgba(255,110,108,0.5);
+}
+.start-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ========== GAME SCREEN ========== */
+#gameScreen {
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  gap: 16px;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 650px;
+  padding: 12px 20px;
+  background: var(--card);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.score-display {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--accent3);
+}
+
+.progress-wrap {
+  flex: 1;
+  margin: 0 16px;
+  height: 10px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent2), var(--accent5));
+  border-radius: 10px;
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+
+.q-counter {
+  font-size: 0.95rem;
+  color: var(--dim);
+}
+
+/* Round Banner */
+.round-banner {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(15,14,23,0.92);
+  animation: bannerIn 0.5s ease-out;
+}
+
+@keyframes bannerIn {
+  from { opacity:0; transform: scale(0.8); }
+  to { opacity:1; transform: scale(1); }
+}
+
+.round-banner .round-icon { font-size: 4rem; margin-bottom: 16px; }
+.round-banner .round-title {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent3), var(--accent1));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.round-banner .round-desc {
+  color: var(--dim);
+  font-size: 1.05rem;
+  margin-top: 8px;
+}
+
+/* Question Card */
+.question-card {
+  background: var(--card);
+  border-radius: 24px;
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 650px;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: cardIn 0.4s ease-out;
+}
+
+@keyframes cardIn {
+  from { opacity:0; transform: translateY(30px); }
+  to { opacity:1; transform: translateY(0); }
+}
+
+.q-type-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.q-prompt {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.q-hint {
+  color: var(--dim);
+  font-size: 0.95rem;
+  margin-bottom: 24px;
+}
+
+/* Multiple choice */
+.choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.choice-btn {
+  background: rgba(255,255,255,0.04);
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 16px;
+  font-size: 1.05rem;
+  font-family: inherit;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: center;
+  line-height: 1.3;
+}
+.choice-btn:hover:not(.disabled) {
+  border-color: var(--accent2);
+  background: rgba(103,232,249,0.08);
+  transform: translateY(-2px);
+}
+.choice-btn.correct {
+  border-color: var(--accent5);
+  background: rgba(52,211,153,0.15);
+  animation: correctPop 0.4s ease-out;
+}
+.choice-btn.wrong {
+  border-color: var(--accent1);
+  background: rgba(255,110,108,0.15);
+  animation: shake 0.4s ease-out;
+}
+.choice-btn.disabled { pointer-events: none; opacity: 0.5; }
+.choice-btn.show-correct {
+  border-color: var(--accent5);
+  background: rgba(52,211,153,0.1);
+  opacity: 1 !important;
+}
+
+@keyframes correctPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+/* Fill-in input */
+.fill-input-wrap {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.fill-input {
+  flex: 1;
+  background: rgba(255,255,255,0.04);
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: 14px;
+  padding: 14px 20px;
+  font-size: 1.2rem;
+  font-family: inherit;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.3s;
+}
+.fill-input:focus {
+  border-color: var(--accent4);
+}
+.fill-input.correct { border-color: var(--accent5); background: rgba(52,211,153,0.1); }
+.fill-input.wrong { border-color: var(--accent1); background: rgba(255,110,108,0.1); }
+
+.submit-btn {
+  background: linear-gradient(135deg, var(--accent4), #8b5cf6);
+  border: none;
+  border-radius: 14px;
+  padding: 14px 24px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.submit-btn:hover { transform: scale(1.05); }
+
+/* True/False */
+.tf-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.tf-btn {
+  flex: 1;
+  max-width: 200px;
+  padding: 18px;
+  border-radius: 18px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  font-family: inherit;
+  border: 2px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: center;
+}
+.tf-btn.tf-true {
+  background: rgba(52,211,153,0.08);
+  color: var(--accent5);
+}
+.tf-btn.tf-false {
+  background: rgba(255,110,108,0.08);
+  color: var(--accent1);
+}
+.tf-btn:hover { transform: translateY(-3px); }
+.tf-btn.correct {
+  border-color: var(--accent5) !important;
+  background: rgba(52,211,153,0.2) !important;
+}
+.tf-btn.wrong {
+  border-color: var(--accent1) !important;
+  background: rgba(255,110,108,0.2) !important;
+  animation: shake 0.4s;
+}
+.tf-btn.disabled { pointer-events: none; opacity: 0.4; }
+
+.tf-pair {
+  text-align: center;
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 14px;
+}
+.tf-pair .tf-en { color: var(--accent2); font-weight: 600; }
+.tf-pair .tf-arrow { color: var(--dim); margin: 0 12px; }
+.tf-pair .tf-cn { color: var(--accent3); font-weight: 600; }
+
+/* Feedback area */
+.feedback {
+  margin-top: 16px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 500;
+  display: none;
+  animation: cardIn 0.3s ease-out;
+}
+.feedback.show { display: block; }
+.feedback.good {
+  background: rgba(52,211,153,0.1);
+  color: var(--accent5);
+  border: 1px solid rgba(52,211,153,0.2);
+}
+.feedback.bad {
+  background: rgba(255,110,108,0.1);
+  color: var(--accent1);
+  border: 1px solid rgba(255,110,108,0.2);
+}
+
+.next-btn {
+  display: none;
+  margin: 16px auto 0;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 14px;
+  padding: 12px 32px;
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.next-btn.show { display: block; }
+.next-btn:hover {
+  background: rgba(255,255,255,0.14);
+  transform: translateY(-2px);
+}
+
+/* Streak & combo */
+.streak-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%) scale(0);
+  font-size: 3rem;
+  font-weight: 700;
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0;
+}
+.streak-popup.show {
+  animation: streakAnim 1s ease-out forwards;
+}
+
+@keyframes streakAnim {
+  0% { transform: translate(-50%,-50%) scale(0); opacity: 0; }
+  20% { transform: translate(-50%,-50%) scale(1.3); opacity: 1; }
+  60% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%,-80%) scale(0.8); opacity: 0; }
+}
+
+/* ========== RESULT SCREEN ========== */
+#resultScreen {
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 20px;
+  gap: 24px;
+}
+
+.result-header {
+  text-align: center;
+}
+
+.result-score {
+  font-size: clamp(3rem, 10vw, 5rem);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.result-grade {
+  font-size: 1.5rem;
+  margin-top: 8px;
+}
+
+.result-name {
+  font-size: 1.1rem;
+  color: var(--dim);
+  margin-top: 4px;
+}
+
+/* Wrong answers */
+.wrong-section {
+  width: 100%;
+  max-width: 600px;
+}
+.wrong-section h3 {
+  font-size: 1.2rem;
+  color: var(--accent1);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.wrong-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wrong-item {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 14px 18px;
+  border-left: 4px solid var(--accent1);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.wrong-item .wi-q { color: var(--dim); font-size: 0.9rem; }
+.wrong-item .wi-your { color: var(--accent1); }
+.wrong-item .wi-correct { color: var(--accent5); }
+
+/* Certificate */
+.cert-wrap {
+  width: 100%;
+  max-width: 520px;
+  margin-top: 10px;
+}
+
+.certificate {
+  background: linear-gradient(145deg, #1e1b4b, #312e81, #1e1b4b);
+  border: 3px solid var(--accent3);
+  border-radius: 24px;
+  padding: 36px 28px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(251,191,36,0.15);
+}
+
+.certificate::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(251,191,36,0.3);
+  border-radius: 18px;
+  pointer-events: none;
+}
+
+.cert-badge {
+  font-size: 3.5rem;
+  margin-bottom: 8px;
+}
+
+.cert-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--accent3);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.cert-name {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 16px 0 8px;
+}
+
+.cert-detail {
+  color: var(--dim);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+.cert-detail strong {
+  color: var(--accent2);
+}
+
+.cert-score-big {
+  font-size: 3rem;
+  font-weight: 700;
+  margin: 16px 0;
+  background: linear-gradient(135deg, var(--accent3), var(--accent1));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cert-stars {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+  letter-spacing: 6px;
+}
+
+.cert-date {
+  font-size: 0.85rem;
+  color: var(--dim);
+  margin-top: 12px;
+}
+
+.cert-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(251,191,36,0.2);
+  font-size: 0.8rem;
+  color: var(--dim);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.action-btn {
+  padding: 14px 28px;
+  border-radius: 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.action-btn:hover { transform: translateY(-2px); }
+.action-btn.primary {
+  background: linear-gradient(135deg, var(--accent5), #10b981);
+  color: white;
+}
+.action-btn.secondary {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: var(--text);
+}
+
+/* Confetti */
+.confetti-piece {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  z-index: 300;
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+  .choices { grid-template-columns: 1fr; }
+  .fill-input-wrap { flex-direction: column; }
+  .certificate { padding: 28px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== START SCREEN ===== -->
+<div id="startScreen" class="screen active">
+  <div class="planet"></div>
+  <div class="game-logo">🚀 Word Adventure</div>
+  <div class="game-subtitle">Ashe 26S4 六集上 · History Lesson 1 - 3<br>4 Rounds · 20 Questions · 100 Points</div>
+  <div class="name-input-wrap">
+    <label>👋 Enter your name</label>
+    <input type="text" class="name-input" id="nameInput" placeholder="Your name" maxlength="20" autocomplete="off">
+  </div>
+  <button class="start-btn" id="startBtn" disabled onclick="startGame()">Start Adventure →</button>
+</div>
+
+<!-- ===== GAME SCREEN ===== -->
+<div id="gameScreen" class="screen">
+  <div class="top-bar">
+    <div class="score-display">⭐ <span id="scoreNum">0</span></div>
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="q-counter"><span id="qCurrent">1</span>/<span id="qTotal">20</span></div>
+  </div>
+  <div class="question-card" id="questionCard"></div>
+  <div class="feedback" id="feedback"></div>
+  <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next →</button>
+</div>
+
+<!-- ===== ROUND BANNER ===== -->
+<div class="round-banner" id="roundBanner">
+  <div class="round-icon" id="roundIcon"></div>
+  <div class="round-title" id="roundTitle"></div>
+  <div class="round-desc" id="roundDesc"></div>
+</div>
+
+<!-- ===== STREAK POPUP ===== -->
+<div class="streak-popup" id="streakPopup"></div>
+
+<!-- ===== RESULT SCREEN ===== -->
+<div id="resultScreen" class="screen"></div>
+
+<script>
+// ===== VOCABULARY DATA =====
+const allWords = [
+  { en: "archaeologist", cn: "考古学家", pos: "n.", emoji: "🏺" },
+  { en: "archaeology", cn: "考古学", pos: "n.", emoji: "📜" },
+  { en: "preserve", cn: "保护/保存", pos: "v.", emoji: "🛡️" },
+  { en: "exhibition", cn: "展览", pos: "n.", emoji: "🖼️" },
+  { en: "exhibit", cn: "展示/展品", pos: "v./n.", emoji: "🎨" },
+  { en: "knight", cn: "骑士/战士", pos: "n.", emoji: "⚔️" },
+  { en: "available", cn: "可用的/有空的", pos: "adj.", emoji: "✅" },
+  { en: "leadership", cn: "领导力", pos: "n.", emoji: "👑" },
+  { en: "excavate", cn: "挖掘", pos: "v.", emoji: "⛏️" },
+  { en: "weapon", cn: "武器", pos: "n.", emoji: "🗡️" },
+  { en: "tomb", cn: "坟墓", pos: "n.", emoji: "🪦" },
+  { en: "fossil", cn: "化石", pos: "n.", emoji: "🦴" },
+  { en: "fossil fuel", cn: "化石燃料", pos: "n.", emoji: "⛽" },
+  { en: "sword", cn: "剑", pos: "n.", emoji: "⚔️" },
+  { en: "membership", cn: "会员", pos: "n.", emoji: "🎫" },
+  { en: "argue", cn: "争论", pos: "v.", emoji: "🗣️" },
+  { en: "argument", cn: "争论/论点", pos: "n.", emoji: "💬" },
+  { en: "well-educated", cn: "受良好教育的", pos: "adj.", emoji: "🎓" },
+  { en: "knowledgeable", cn: "学识渊博的", pos: "adj.", emoji: "🧠" },
+  { en: "obvious", cn: "明显的", pos: "adj.", emoji: "👀" },
+  { en: "citizen", cn: "公民", pos: "n.", emoji: "🧑‍🤝‍🧑" },
+  { en: "compulsory", cn: "必修的", pos: "adj.", emoji: "📌" },
+  { en: "optional", cn: "选修的", pos: "adj.", emoji: "🔘" },
+  { en: "deal with", cn: "处理/对应", pos: "v.", emoji: "🔧" },
+  { en: "be in favour of", cn: "喜欢/支持", pos: "phr.", emoji: "👍" },
+  { en: "ongoing", cn: "进行中的", pos: "adj.", emoji: "🔄" },
+  { en: "benefit", cn: "促进/有益于", pos: "v.", emoji: "📈" },
+  { en: "current issue", cn: "时事新闻", pos: "n.", emoji: "📰" },
+  { en: "tuition", cn: "教育/学费", pos: "n.", emoji: "💰" },
+  { en: "ancient", cn: "古老的", pos: "adj.", emoji: "🏛️" },
+  { en: "field", cn: "田地/领域", pos: "n.", emoji: "🌾" },
+  { en: "artefact remains", cn: "文物残片", pos: "n.", emoji: "🏺" },
+  { en: "science experiment", cn: "科学实验", pos: "n.", emoji: "🧪" },
+  { en: "display", cn: "展示/屏幕", pos: "v./n.", emoji: "🖥️" },
+  { en: "document", cn: "文件/记录", pos: "n./v.", emoji: "📄" },
+  { en: "documentary", cn: "纪录片", pos: "n.", emoji: "🎬" },
+  { en: "finance", cn: "经济/金融", pos: "n.", emoji: "💵" },
+  { en: "search", cn: "搜索", pos: "v.", emoji: "🔍" },
+  { en: "research", cn: "研究", pos: "v./n.", emoji: "🔬" },
+  { en: "period", cn: "时间段/周期", pos: "n.", emoji: "⏳" },
+  { en: "arrow and bow", cn: "弓和箭", pos: "n.", emoji: "🏹" },
+  { en: "chemical reaction", cn: "化学反应", pos: "n.", emoji: "⚗️" },
+  { en: "time-consuming", cn: "耗时的", pos: "adj.", emoji: "⏰" },
+  { en: "stay overnight", cn: "过夜", pos: "phr.", emoji: "🌙" },
+  { en: "move the country forward", cn: "推动国家进步", pos: "phr.", emoji: "🚀" },
+  { en: "benefit the economy", cn: "促进经济发展", pos: "phr.", emoji: "📊" },
+  { en: "treasure", cn: "宝藏", pos: "n.", emoji: "💎" },
+  { en: "treasure hunter", cn: "盗墓者", pos: "n.", emoji: "🏴‍☠️" },
+  { en: "bury", cn: "埋", pos: "v.", emoji: "⬇️" },
+  { en: "greedy", cn: "贪婪的", pos: "adj.", emoji: "😈" },
+  { en: "present", cn: "礼物/出席/现在的", pos: "n./v./adj.", emoji: "🎁" },
+  { en: "represent", cn: "代表", pos: "v.", emoji: "🏛️" },
+  { en: "rule", cn: "统治/规则", pos: "v./n.", emoji: "👑" },
+  { en: "ruler", cn: "统治者/尺子", pos: "n.", emoji: "📏" },
+  { en: "statue", cn: "雕像", pos: "n.", emoji: "🗿" },
+  { en: "army", cn: "军队", pos: "n.", emoji: "🪖" },
+  { en: "military", cn: "军队/军事的", pos: "n./adj.", emoji: "🎖️" },
+  { en: "object", cn: "物体/反对", pos: "n./v.", emoji: "📦" },
+  { en: "a historical find", cn: "历史发现", pos: "n.", emoji: "🔍" },
+  { en: "Terra Cotta Army", cn: "兵马俑", pos: "n.", emoji: "🏺" },
+  { en: "military parade", cn: "阅兵", pos: "n.", emoji: "🎺" },
+  { en: "religious belief", cn: "宗教信仰", pos: "n.", emoji: "🙏" },
+];
+
+// ===== GAME STATE =====
+let playerName = "";
+let score = 0;
+let currentQ = 0;
+let streak = 0;
+let questions = [];
+let wrongAnswers = [];
+let shownBanners = new Set();
+const TOTAL_Q = 20;
+const PER_Q = 5;
+
+// ===== ROUND DEFINITIONS =====
+const rounds = [
+  { name: "🎯 English → Chinese", desc: "Choose the correct Chinese meaning", icon: "🎯", count: 5 },
+  { name: "🔄 Chinese → English", desc: "Choose the correct English word", icon: "🔄", count: 5 },
+  { name: "✏️ Spelling Master", desc: "Type the correct English word", icon: "✏️", count: 5 },
+  { name: "⚡ True or False", desc: "Is this word-meaning pair correct?", icon: "⚡", count: 5 },
+];
+
+// ===== HELPERS =====
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pick(arr, n, exclude) {
+  const pool = exclude ? arr.filter(w => !exclude.includes(w)) : [...arr];
+  return shuffle(pool).slice(0, n);
+}
+
+// ===== GENERATE QUESTIONS =====
+function generateQuestions() {
+  const pool = shuffle(allWords);
+  const qs = [];
+
+  // Round 1: English -> Chinese (MCQ)
+  for (let i = 0; i < 5; i++) {
+    const w = pool[i];
+    const distractors = pick(allWords, 3, [w]).map(d => d.cn);
+    const options = shuffle([w.cn, ...distractors]);
+    qs.push({
+      type: "en2cn",
+      round: 0,
+      word: w,
+      prompt: w.en,
+      hint: `${w.pos} ${w.emoji}`,
+      answer: w.cn,
+      options
+    });
+  }
+
+  // Round 2: Chinese -> English (MCQ)
+  for (let i = 5; i < 10; i++) {
+    const w = pool[i];
+    const distractors = pick(allWords, 3, [w]).map(d => d.en);
+    const options = shuffle([w.en, ...distractors]);
+    qs.push({
+      type: "cn2en",
+      round: 1,
+      word: w,
+      prompt: w.cn,
+      hint: `${w.pos} ${w.emoji}`,
+      answer: w.en,
+      options
+    });
+  }
+
+  // Round 3: Spelling (fill in)
+  for (let i = 10; i < 15; i++) {
+    const w = pool[i];
+    const letters = w.en.split('');
+    let mask = letters.map((ch, idx) => {
+      if (idx === 0 || ch === ' ') return ch;
+      return Math.random() < 0.4 ? ch : '_';
+    }).join('');
+    qs.push({
+      type: "spell",
+      round: 2,
+      word: w,
+      prompt: w.cn,
+      hint: `${w.emoji} Hint: ${mask}`,
+      answer: w.en,
+    });
+  }
+
+  // Round 4: True/False
+  for (let i = 15; i < 20; i++) {
+    const w = pool[i];
+    const isTrue = Math.random() > 0.45;
+    let shownCn;
+    if (isTrue) {
+      shownCn = w.cn;
+    } else {
+      const fake = pick(allWords, 1, [w])[0];
+      shownCn = fake.cn;
+    }
+    qs.push({
+      type: "tf",
+      round: 3,
+      word: w,
+      prompt: w.en,
+      shownCn,
+      answer: isTrue,
+      hint: w.emoji,
+    });
+  }
+
+  return qs;
+}
+
+// ===== NAME INPUT =====
+const nameInput = document.getElementById('nameInput');
+const startBtn = document.getElementById('startBtn');
+nameInput.addEventListener('input', () => {
+  startBtn.disabled = nameInput.value.trim().length === 0;
+});
+nameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && nameInput.value.trim()) startGame();
+});
+
+// ===== START GAME =====
+function startGame() {
+  playerName = nameInput.value.trim();
+  score = 0;
+  currentQ = 0;
+  streak = 0;
+  wrongAnswers = [];
+  shownBanners = new Set();
+  questions = generateQuestions();
+
+  document.getElementById('startScreen').classList.remove('active');
+  document.getElementById('gameScreen').classList.add('active');
+  document.getElementById('scoreNum').textContent = 0;
+  document.getElementById('qTotal').textContent = TOTAL_Q;
+
+  showRoundBanner(0, () => renderQuestion());
+}
+
+// ===== ROUND BANNER =====
+function showRoundBanner(roundIdx, cb) {
+  const banner = document.getElementById('roundBanner');
+  const r = rounds[roundIdx];
+  document.getElementById('roundIcon').textContent = r.icon;
+  document.getElementById('roundTitle').textContent = r.name;
+  document.getElementById('roundDesc').textContent = r.desc;
+  banner.style.display = 'flex';
+  banner.style.animation = 'none';
+  void banner.offsetWidth;
+  banner.style.animation = 'bannerIn 0.5s ease-out';
+  setTimeout(() => {
+    banner.style.display = 'none';
+    if (cb) cb();
+  }, 1500);
+}
+
+// ===== RENDER QUESTION =====
+function renderQuestion() {
+  if (currentQ >= TOTAL_Q) { showResults(); return; }
+
+  const q = questions[currentQ];
+  const card = document.getElementById('questionCard');
+  const fb = document.getElementById('feedback');
+  const nextBtnEl = document.getElementById('nextBtn');
+  fb.className = 'feedback';
+  fb.style.display = 'none';
+  nextBtnEl.className = 'next-btn';
+
+  document.getElementById('qCurrent').textContent = currentQ + 1;
+  document.getElementById('progressBar').style.width = ((currentQ) / TOTAL_Q * 100) + '%';
+
+  // Check if new round
+  if (currentQ > 0 && q.round !== questions[currentQ - 1].round && !shownBanners.has(q.round)) {
+    shownBanners.add(q.round);
+    showRoundBanner(q.round, () => renderQuestion());
+    return;
+  }
+
+  const colors = [
+    { bg: 'rgba(255,110,108,0.15)', text: 'var(--accent1)' },
+    { bg: 'rgba(103,232,249,0.15)', text: 'var(--accent2)' },
+    { bg: 'rgba(167,139,250,0.15)', text: 'var(--accent4)' },
+    { bg: 'rgba(251,191,36,0.15)', text: 'var(--accent3)' },
+  ];
+  const c = colors[q.round];
+  const roundLabels = ['Eng→Chn', 'Chn→Eng', 'Spelling', 'True/False'];
+
+  let html = `<div class="q-type-badge" style="background:${c.bg};color:${c.text}">Round ${q.round+1} · ${roundLabels[q.round]}</div>`;
+
+  if (q.type === 'en2cn' || q.type === 'cn2en') {
+    html += `<div class="q-prompt">${q.prompt}</div>`;
+    html += `<div class="q-hint">${q.hint}</div>`;
+    html += `<div class="choices">`;
+    q.options.forEach((o, i) => {
+      html += `<button class="choice-btn" data-idx="${i}" onclick="answerMCQ(this, ${i})">${o}</button>`;
+    });
+    html += `</div>`;
+  }
+  else if (q.type === 'spell') {
+    html += `<div class="q-prompt">${q.prompt}</div>`;
+    html += `<div class="q-hint">${q.hint}</div>`;
+    html += `<div class="fill-input-wrap">
+      <input type="text" class="fill-input" id="spellInput" placeholder="Type the word..." autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button class="submit-btn" onclick="answerSpell()">OK</button>
+    </div>`;
+  }
+  else if (q.type === 'tf') {
+    html += `<div class="tf-pair">
+      <span class="tf-en">${q.prompt}</span>
+      <span class="tf-arrow">→</span>
+      <span class="tf-cn">${q.shownCn}</span>
+    </div>`;
+    html += `<div class="q-hint">${q.hint} Is this pair correct?</div>`;
+    html += `<div class="tf-buttons">
+      <button class="tf-btn tf-true" onclick="answerTF(this, true)">✅ True</button>
+      <button class="tf-btn tf-false" onclick="answerTF(this, false)">❌ False</button>
+    </div>`;
+  }
+
+  card.innerHTML = html;
+  card.style.animation = 'none';
+  void card.offsetWidth;
+  card.style.animation = 'cardIn 0.4s ease-out';
+
+  // Auto focus spell input
+  if (q.type === 'spell') {
+    setTimeout(() => {
+      const inp = document.getElementById('spellInput');
+      if (inp) {
+        inp.focus();
+        inp.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') answerSpell();
+        });
+      }
+    }, 100);
+  }
+}
+
+// ===== ANSWER HANDLERS =====
+function answerMCQ(btn, chosenIdx) {
+  const q = questions[currentQ];
+  const chosenVal = q.options[chosenIdx];
+  const isCorrect = chosenVal === q.answer;
+
+  // Disable all buttons
+  const allBtns = document.querySelectorAll('.choice-btn');
+  allBtns.forEach(b => b.classList.add('disabled'));
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    onCorrect();
+  } else {
+    btn.classList.add('wrong');
+    // Highlight the correct answer
+    allBtns.forEach(b => {
+      const idx = parseInt(b.getAttribute('data-idx'));
+      if (q.options[idx] === q.answer) {
+        b.classList.remove('disabled');
+        b.classList.add('show-correct');
+      }
+    });
+    onWrong(chosenVal);
+  }
+}
+
+function answerSpell() {
+  const inp = document.getElementById('spellInput');
+  if (!inp || inp.disabled) return;
+  const val = inp.value.trim().toLowerCase();
+  const correct = questions[currentQ].answer.toLowerCase();
+
+  if (val === correct) {
+    inp.classList.add('correct');
+    onCorrect();
+  } else {
+    inp.classList.add('wrong');
+    onWrong(val || '(empty)');
+  }
+  inp.disabled = true;
+  document.querySelector('.submit-btn').style.display = 'none';
+}
+
+function answerTF(btn, chosen) {
+  const correct = questions[currentQ].answer;
+  const isCorrect = chosen === correct;
+
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.add('disabled'));
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    onCorrect();
+  } else {
+    btn.classList.add('wrong');
+    const otherBtn = chosen ? document.querySelector('.tf-false') : document.querySelector('.tf-true');
+    otherBtn.classList.add('correct');
+    onWrong(chosen ? 'True' : 'False');
+  }
+}
+
+// ===== SCORE & FEEDBACK =====
+function onCorrect() {
+  score += PER_Q;
+  streak++;
+  document.getElementById('scoreNum').textContent = score;
+
+  const fb = document.getElementById('feedback');
+  const cheers = ['Awesome! 🎉', 'Perfect! ✨', 'Amazing! 🔥', 'Excellent! 💫', 'Correct! 👏', 'Brilliant! 🌟'];
+  fb.textContent = cheers[Math.floor(Math.random() * cheers.length)];
+  fb.className = 'feedback show good';
+
+  if (streak >= 3) showStreak();
+
+  document.getElementById('nextBtn').className = 'next-btn show';
+}
+
+function onWrong(userAnswer) {
+  streak = 0;
+  const q = questions[currentQ];
+  let correctDisplay, questionDisplay;
+
+  if (q.type === 'en2cn') {
+    questionDisplay = `${q.prompt} → Chinese`;
+    correctDisplay = q.answer;
+  } else if (q.type === 'cn2en') {
+    questionDisplay = `${q.prompt} → English`;
+    correctDisplay = q.answer;
+  } else if (q.type === 'spell') {
+    questionDisplay = `Spell: ${q.prompt}`;
+    correctDisplay = q.answer;
+  } else {
+    questionDisplay = `${q.prompt} → ${q.shownCn}`;
+    correctDisplay = q.answer ? 'True ✅' : 'False ❌';
+  }
+
+  wrongAnswers.push({
+    question: questionDisplay,
+    yourAnswer: userAnswer,
+    correct: correctDisplay,
+    word: q.word
+  });
+
+  const fb = document.getElementById('feedback');
+  fb.innerHTML = `😅 Answer: <strong>${correctDisplay}</strong>`;
+  fb.className = 'feedback show bad';
+
+  document.getElementById('nextBtn').className = 'next-btn show';
+}
+
+function showStreak() {
+  const popup = document.getElementById('streakPopup');
+  const msgs = {
+    3: { text: '🔥 3 in a row!', color: 'var(--accent3)' },
+    5: { text: '⚡ 5 streak!', color: 'var(--accent2)' },
+    7: { text: '🌟 7 streak!', color: 'var(--accent4)' },
+    10: { text: '👑 10 streak! UNSTOPPABLE!', color: 'var(--accent1)' },
+  };
+  const key = Object.keys(msgs).reverse().find(k => streak >= k);
+  if (!key) return;
+  const m = msgs[key];
+  popup.textContent = m.text;
+  popup.style.color = m.color;
+  popup.className = 'streak-popup show';
+  setTimeout(() => popup.className = 'streak-popup', 1100);
+}
+
+function nextQuestion() {
+  currentQ++;
+  renderQuestion();
+}
+
+// ===== RESULTS =====
+function showResults() {
+  document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('resultScreen').classList.add('active');
+  document.getElementById('progressBar').style.width = '100%';
+
+  let grade, gradeColor, starCount;
+  if (score >= 95) { grade = '🏆 Perfect Master!'; gradeColor = 'var(--accent3)'; starCount = 5; }
+  else if (score >= 85) { grade = '🌟 Outstanding!'; gradeColor = 'var(--accent5)'; starCount = 4; }
+  else if (score >= 70) { grade = '👍 Well Done!'; gradeColor = 'var(--accent2)'; starCount = 3; }
+  else if (score >= 55) { grade = '💪 Keep Going!'; gradeColor = 'var(--accent4)'; starCount = 2; }
+  else { grade = '📚 Review Time!'; gradeColor = 'var(--accent1)'; starCount = 1; }
+
+  const stars = '⭐'.repeat(starCount) + '☆'.repeat(5 - starCount);
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}/${today.getMonth()+1}/${today.getDate()}`;
+
+  let html = `
+    <div class="result-header">
+      <div class="result-score" style="color:${gradeColor}">${score}</div>
+      <div class="result-grade" style="color:${gradeColor}">${grade}</div>
+      <div class="result-name">${playerName}'s Adventure Result</div>
+    </div>
+  `;
+
+  // Wrong answers
+  if (wrongAnswers.length > 0) {
+    html += `<div class="wrong-section">
+      <h3>📋 Review Mistakes (${wrongAnswers.length})</h3>
+      <div class="wrong-list">`;
+    wrongAnswers.forEach(w => {
+      html += `<div class="wrong-item">
+        <div class="wi-q">❓ ${w.question}</div>
+        <div class="wi-your">❌ Your answer: ${w.yourAnswer}</div>
+        <div class="wi-correct">✅ Correct: ${w.correct}</div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  } else {
+    html += `<div style="text-align:center;color:var(--accent5);font-size:1.2rem;padding:16px;">🎉 All Correct! Perfect Score! Amazing!</div>`;
+  }
+
+  // Certificate
+  html += `
+    <div class="cert-wrap">
+      <div class="certificate" id="certificate">
+        <div class="cert-badge">${score >= 90 ? '🏆' : score >= 70 ? '🌟' : '📜'}</div>
+        <div class="cert-title">Certificate of Completion</div>
+        <div style="font-size:0.85rem;color:var(--dim);margin-top:4px;">Word Adventure · History Vocabulary</div>
+        <div class="cert-name">${playerName}</div>
+        <div class="cert-detail">
+          has completed the <strong>Ashe 26S4 六集上 History Lesson 1 - 3</strong><br>
+          Word Adventure with <strong>${TOTAL_Q}</strong> challenges
+        </div>
+        <div class="cert-score-big">${score} pts</div>
+        <div class="cert-stars">${stars}</div>
+        <div class="cert-detail">
+          Correct: <strong>${TOTAL_Q - wrongAnswers.length}</strong> · 
+          Wrong: <strong>${wrongAnswers.length}</strong>
+        </div>
+        <div class="cert-date">📅 ${dateStr}</div>
+        <div class="cert-footer">
+          <span>Ashe Language School</span>
+          <span>${grade}</span>
+        </div>
+      </div>
+    </div>
+    <div class="action-buttons">
+      <button class="action-btn primary" onclick="restartGame()">🔄 Play Again</button>
+      <button class="action-btn secondary" onclick="scrollToCert()">📜 View Certificate</button>
+    </div>
+  `;
+
+  document.getElementById('resultScreen').innerHTML = html;
+
+  // Confetti for good scores
+  if (score >= 70) spawnConfetti();
+}
+
+function scrollToCert() {
+  document.getElementById('certificate').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function restartGame() {
+  document.getElementById('resultScreen').classList.remove('active');
+  document.getElementById('startScreen').classList.add('active');
+  nameInput.value = playerName;
+  startBtn.disabled = false;
+}
+
+// ===== CONFETTI =====
+function spawnConfetti() {
+  const colors = ['#ff6e6c','#67e8f9','#fbbf24','#a78bfa','#34d399','#f472b6'];
+  for (let i = 0; i < 60; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.top = '-10px';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.width = (Math.random() * 8 + 5) + 'px';
+    el.style.height = (Math.random() * 8 + 5) + 'px';
+    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    el.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(el);
+
+    const dur = Math.random() * 2 + 2;
+    const sway = (Math.random() - 0.5) * 200;
+    el.animate([
+      { transform: `translate(0, 0) rotate(0deg)`, opacity: 1 },
+      { transform: `translate(${sway}px, ${window.innerHeight + 50}px) rotate(${Math.random()*720}deg)`, opacity: 0 }
+    ], { duration: dur * 1000, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' })
+    .onfinish = () => el.remove();
+  }
+}
+</script>
+</body>
+</html>
