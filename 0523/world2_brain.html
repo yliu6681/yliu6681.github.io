@@ -491,11 +491,11 @@ function renderListen(){
 }
 let _lastUtt=null;
 function lSpeak(){
-  if(!lCur||!window.speechSynthesis)return;
+  if(!lCur||!window.speechSynthesis){console.log('lSpeak: no speechSynthesis');return;}
   const ss=window.speechSynthesis;
-  if(ss.paused) ss.resume();
+  console.log('lSpeak: lCur='+lCur.en+', voices='+lVoices.length+', speaking='+ss.speaking+', pending='+ss.pending);
+  if(ss.paused){console.log('lSpeak: resuming paused');ss.resume();}
   
-  // 刷新语音列表
   if(!lVoices.length){
     lVoices=ss.getVoices().filter(v=>v.lang.startsWith('en'));
   }
@@ -505,6 +505,7 @@ function lSpeak(){
   }
   
   const best=lVoices.find(v=>v.lang==='en-GB')||lVoices.find(v=>v.lang==='en-US')||lVoices.find(v=>v.lang.startsWith('en'))||null;
+  console.log('lSpeak: bestVoice='+(best?best.name:'null'));
   
   const doSpeak=(voiceOverride)=>{
     if(!lCur)return;
@@ -518,19 +519,20 @@ function lSpeak(){
     if(btn){btn.style.borderColor='var(--a)';btn.style.background='rgba(255,255,255,.1)';}
     if(ico)ico.textContent='🔊';
     const r1=document.getElementById('l-ring1');const r2=document.getElementById('l-ring2');if(r1)r1.style.animationPlayState='running';if(r2)r2.style.animationPlayState='running';
-    utt.onend=()=>{if(btn){btn.style.borderColor='';btn.style.background='var(--card)';}};
+    utt.onend=()=>{console.log('TTS END: '+lCur.en);if(btn){btn.style.borderColor='';btn.style.background='var(--card)';}};
     let _retry=false;
     utt.onerror=(e)=>{
+      console.log('TTS ERROR: '+e.error+' word='+lCur.en);
       if(btn){btn.style.borderColor='';btn.style.background='var(--card)';}
       if(e.error==='canceled'||e.error==='interrupted')return;
-      // 如果指定 voice 失败，尝试用默认语音（中文引擎也能硬读英文）
       if(!_retry&&voiceOverride){
         _retry=true;
+        console.log('TTS RETRY without voice');
         setTimeout(()=>doSpeak(null),80);
         return;
       }
-      console.error('TTS error',e.error);
     };
+    console.log('TTS SPEAK: '+lCur.en+' voice='+(voiceOverride?voiceOverride.name:'default'));
     ss.speak(utt);
   };
   
