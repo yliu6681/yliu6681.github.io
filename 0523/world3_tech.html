@@ -443,11 +443,33 @@ function endMCQ(){
 /* ── LISTEN ── */
 const LISTEN_N=10;
 let lQ=[],lIdx=0,lScore=0,lStreak=0,lCur=null,lVoices=[];
-function initVoices(){lVoices=window.speechSynthesis?window.speechSynthesis.getVoices().filter(v=>v.lang.startsWith('en')):[];if(!lVoices.length&&window.speechSynthesis)window.speechSynthesis.onvoiceschanged=()=>{lVoices=window.speechSynthesis.getVoices().filter(v=>v.lang.startsWith('en'));};}
-if(window.speechSynthesis)initVoices();
+function initVoices(){
+  if(!window.speechSynthesis) return;
+  lVoices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
+  if(!lVoices.length){
+    window.speechSynthesis.onvoiceschanged = () => {
+      lVoices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
+    };
+    window.speechSynthesis.getVoices();
+  }
+}
+if(window.speechSynthesis) initVoices();
+
+/* -- TTS unlock for mobile -- */
+(function(){
+  const unlock = () => {
+    if(window.speechSynthesis) {
+      window.speechSynthesis.resume();
+      window.speechSynthesis.getVoices();
+    }
+  };
+  document.addEventListener('click', unlock, {once:true});
+  document.addEventListener('touchstart', unlock, {once:true});
+})();
 function showListenIntro(){goScr('s-listen-intro');}
 function startListen(){
   lQ=shuf(WORDS).slice(0,LISTEN_N);lIdx=0;lScore=0;lStreak=0;wL=[];
+  if(window.speechSynthesis && !lVoices.length) lVoices=window.speechSynthesis.getVoices().filter(v=>v.lang.startsWith('en'));
   showHUD(true);setPip(1,'done');setPip(2,'active');setPip(3,'');setPip(4,'');
   goScr('s-listen');renderListen();
 }
@@ -462,19 +484,36 @@ function renderListen(){
   const pool=shuf([lCur,...shuf(WORDS.filter(w=>w.en!==lCur.en)).slice(0,3)]);
   const wrap=document.getElementById('l-opts');wrap.innerHTML='';
   pool.forEach(o=>{const b=document.createElement('button');b.className='opt';b.textContent=o.cn;b.onclick=()=>pickListen(b,o.cn);wrap.appendChild(b);});
-  setTimeout(lSpeak,350);
+  lSpeak();
 }
+let _lastUtt=null;
 function lSpeak(){
   if(!lCur||!window.speechSynthesis)return;
-  window.speechSynthesis.cancel();
-  const btn=document.getElementById('l-speak-btn');
-  const utt=new SpeechSynthesisUtterance(lCur.en);
-  const v=lVoices.find(v=>v.lang==='en-GB')||lVoices.find(v=>v.lang==='en-US')||lVoices[0];
-  if(v)utt.voice=v;utt.rate=0.85;utt.pitch=1;
-  btn.style.borderColor='var(--a)';btn.style.background='rgba(255,255,255,.1)';
-  utt.onend=()=>{btn.style.borderColor='';btn.style.background='var(--card)';};
-  utt.onerror=()=>{btn.style.borderColor='';btn.style.background='var(--card)';};
-  window.speechSynthesis.speak(utt);
+  const ss=window.speechSynthesis;
+  if(ss.paused) ss.resume();
+  if(!lVoices.length) lVoices=ss.getVoices().filter(v=>v.lang.startsWith('en'));
+  if(!lVoices.length){
+    toast('⚠️ 无英语语音包，请安装TTS引擎','t-no');
+    return;
+  }
+  const doSpeak=()=>{
+    if(!lCur)return;
+    const utt=new SpeechSynthesisUtterance(lCur.en);
+    _lastUtt=utt;
+    const v=lVoices.find(v=>v.lang==='en-GB')||lVoices.find(v=>v.lang==='en-US')||lVoices.find(v=>v.lang.startsWith('en'))||null;
+    if(v)utt.voice=v;
+    utt.rate=0.85;utt.pitch=1;
+    const btn=document.getElementById('l-speak-btn');
+    const ico=document.getElementById('l-speak-ico');
+    if(btn){btn.style.borderColor='var(--a)';btn.style.background='rgba(255,255,255,.1)';}
+    if(ico)ico.textContent='🔊';
+    const r1=document.getElementById('l-ring1');const r2=document.getElementById('l-ring2');if(r1)r1.style.animationPlayState='running';if(r2)r2.style.animationPlayState='running';
+    utt.onend=()=>{if(btn){btn.style.borderColor='';btn.style.background='var(--card)';}};
+    utt.onerror=(e)=>{if(btn){btn.style.borderColor='';btn.style.background='var(--card)';}if(e.error!=='interrupted')console.error('TTS error',e.error);};
+    ss.speak(utt);
+  };
+  if(ss.speaking||ss.pending){ss.cancel();setTimeout(doSpeak,60);}
+  else{doSpeak();}
 }
 function pickListen(btn,chosen){
   if(document.querySelector('#l-opts .lk'))return;
