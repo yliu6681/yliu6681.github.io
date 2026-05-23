@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧠 大脑世界 · 单词大冒险</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0a0316;--a:#c77dff;--a2:#ff4da6;--a3:#e040fb;--card:rgba(199,125,255,.07);--border:rgba(199,125,255,.22);}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:#fff;min-height:100vh;overflow-x:hidden;}
+#stars-bg{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.s{position:absolute;background:#fff;border-radius:50%;animation:tw var(--d,2s) var(--dl,0s) infinite alternate;}
+@keyframes tw{0%{opacity:.1}100%{opacity:.9}}
+.scr{display:none;min-height:100vh;width:100%;position:relative;z-index:1;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem 1rem;}
+.scr.on{display:flex;}
+#hud{position:fixed;top:0;left:0;right:0;z-index:200;padding:.65rem 1.2rem;display:none;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(10,3,22,.97),transparent);backdrop-filter:blur(6px);}
+.hud-l{font-size:.72rem;color:var(--a);font-weight:800;letter-spacing:1px;}
+.hud-c{display:flex;align-items:center;gap:.5rem;}
+.hud-pip{width:26px;height:26px;border-radius:8px;border:2px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:.85rem;}
+.hud-pip.done{border-color:var(--a3);background:rgba(0,255,159,.12);}
+.hud-pip.active{border-color:var(--a);background:rgba(199,125,255,.15);animation:phud 1.2s ease-in-out infinite;}
+@keyframes phud{0%,100%{box-shadow:none}50%{box-shadow:0 0 10px rgba(199,125,255,.5)}}
+.hud-r{font-family:'Press Start 2P',monospace;font-size:.72rem;color:var(--a);}
+#s-welcome{background:radial-gradient(ellipse at 30% 40%,rgba(199,125,255,.13),transparent 55%),radial-gradient(ellipse at 70% 70%,rgba(255,107,53,.09),transparent 50%),var(--bg);}
+.lv-badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(199,125,255,.1);border:1px solid var(--border);border-radius:50px;padding:.35rem 1.1rem;font-size:.78rem;color:var(--a);letter-spacing:2px;margin-bottom:1.2rem;}
+.big-icon{font-size:4.5rem;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.w-title{font-family:'Fredoka One',cursive;font-size:clamp(2.2rem,7vw,4rem);background:linear-gradient(135deg,var(--a),#7df9ff,var(--a3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:.3rem 0;}
+.w-sub{color:rgba(255,255,255,.4);font-size:.9rem;margin-bottom:.25rem;}
+.w-desc{color:rgba(255,255,255,.25);font-size:.78rem;margin-bottom:2rem;}
+.name-box{width:100%;max-width:360px;display:flex;flex-direction:column;gap:.9rem;align-items:center;}
+.n-inp{width:100%;padding:.9rem 1.4rem;background:var(--card);border:2px solid var(--border);border-radius:50px;color:#fff;font-size:1.15rem;font-family:'Nunito',sans-serif;text-align:center;outline:none;transition:all .3s;}
+.n-inp:focus{border-color:var(--a);box-shadow:0 0 22px rgba(199,125,255,.22);}
+.n-inp::placeholder{color:rgba(255,255,255,.22);}
+.btn-go{padding:.9rem 2.8rem;font-family:'Fredoka One',cursive;font-size:1.25rem;background:linear-gradient(135deg,var(--a),#8800cc);border:none;border-radius:50px;color:#fff;cursor:pointer;box-shadow:0 5px 22px rgba(199,125,255,.38);transition:all .3s;}
+.btn-go:hover{transform:translateY(-3px) scale(1.04);}
+.stage-row{display:flex;gap:1.2rem;margin-top:1.5rem;flex-wrap:wrap;justify-content:center;}
+.stage-pip{display:flex;flex-direction:column;align-items:center;gap:.3rem;font-size:.72rem;color:rgba(255,255,255,.35);}
+.pip-icon{font-size:1.4rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;}
+.intro-card{background:var(--card);border:2px solid var(--border);border-radius:24px;padding:2.2rem 2rem;text-align:center;max-width:420px;width:100%;position:relative;overflow:hidden;}
+.intro-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--a),var(--a3),var(--a2));}
+.intro-lv{font-size:.75rem;color:rgba(255,255,255,.35);letter-spacing:2px;margin-bottom:.5rem;}
+.intro-icon{font-size:3rem;margin-bottom:.5rem;}
+.intro-title{font-family:'Fredoka One',cursive;font-size:1.9rem;color:var(--a);margin-bottom:.5rem;}
+.intro-rule{color:rgba(255,255,255,.5);font-size:.88rem;line-height:1.7;margin-bottom:1.5rem;}
+.btn-start{padding:.85rem 2.5rem;font-family:'Fredoka One',cursive;font-size:1.15rem;background:linear-gradient(135deg,var(--a),#8800cc);border:none;border-radius:50px;color:#fff;cursor:pointer;box-shadow:0 5px 20px rgba(199,125,255,.35);transition:all .3s;}
+.btn-start:hover{transform:translateY(-2px) scale(1.03);}
+#s-mcq{background:radial-gradient(ellipse at 50% 20%,rgba(199,125,255,.07),transparent 55%),var(--bg);padding-top:4.5rem;}
+.mcq-inner{width:100%;max-width:660px;}
+.prog-wrap{width:100%;height:7px;background:rgba(255,255,255,.08);border-radius:4px;margin-bottom:1rem;}
+.prog-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--a),var(--a3));transition:width .5s ease;}
+.mcq-meta{display:flex;justify-content:space-between;color:rgba(255,255,255,.35);font-size:.8rem;margin-bottom:1.2rem;}
+.q-card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:2.2rem 1.8rem;text-align:center;margin-bottom:1.3rem;position:relative;overflow:hidden;}
+.q-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--a),transparent);}
+.q-pos{display:inline-block;background:rgba(199,125,255,.13);border:1px solid rgba(199,125,255,.25);color:var(--a);border-radius:50px;padding:.2rem .7rem;font-size:.75rem;margin-bottom:.7rem;}
+.q-cn{font-family:'Fredoka One',cursive;font-size:clamp(1.9rem,5.5vw,3rem);color:#fff;}
+.streak{font-size:.82rem;color:#ffbe0b;margin-top:.6rem;min-height:1.2rem;}
+.opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;}
+.opt{padding:1rem 1.1rem;background:var(--card);border:2px solid var(--border);border-radius:15px;color:#fff;font-size:.95rem;font-family:'Nunito',sans-serif;font-weight:800;cursor:pointer;transition:all .22s;text-align:center;}
+.opt:hover:not(.lk){border-color:var(--a);transform:translateY(-2px);}
+.opt.ok{background:rgba(0,255,159,.13);border-color:var(--a3);color:var(--a3);}
+.opt.no{background:rgba(255,70,70,.13);border-color:#ff5050;color:#ff7070;}
+.opt.lk{pointer-events:none;}
+#s-mole{background:radial-gradient(ellipse at 50% 15%,rgba(199,125,255,.08),transparent 55%),var(--bg);padding-top:4.5rem;}
+.mole-inner{width:100%;max-width:520px;display:flex;flex-direction:column;align-items:center;gap:1rem;}
+.mole-top-row{display:flex;align-items:center;gap:1rem;width:100%;}
+.t-ring-wrap{position:relative;width:56px;height:56px;flex-shrink:0;}
+.t-ring-wrap svg{transform:rotate(-90deg);}
+.t-ring-bg{stroke:rgba(255,255,255,.08);}
+.t-ring-fg{stroke:var(--a2);stroke-linecap:round;transition:stroke-dashoffset .9s linear;stroke-dasharray:145;stroke-dashoffset:0;}
+.t-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P',monospace;font-size:.68rem;color:#fff;}
+.q-banner{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:1rem 1.8rem;text-align:center;flex:1;}
+.qb-label{font-size:.68rem;color:rgba(255,255,255,.28);letter-spacing:2px;margin-bottom:.25rem;}
+.qb-cn{font-family:'Fredoka One',cursive;font-size:clamp(1.6rem,4.5vw,2.4rem);color:#fff;}
+.qb-pos{font-size:.72rem;color:var(--a);margin-top:.15rem;}
+.mole-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem;width:100%;}
+.hole{border-radius:16px;background:var(--card);border:2px solid rgba(199,125,255,.12);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:all .18s;padding:.7rem .4rem;min-height:80px;}
+.hole:hover{background:rgba(199,125,255,.12);border-color:var(--border);}
+.hole.ok{background:rgba(0,255,159,.15);border-color:var(--a3);}
+.hole.no{background:rgba(255,60,60,.13);border-color:#ff5050;}
+.h-ico{font-size:1.6rem;line-height:1;}
+.h-txt{font-size:.78rem;font-weight:800;color:#fff;text-align:center;padding:0 .25rem;line-height:1.2;}
+#s-shoot{padding:0;background:var(--bg);}
+#cv{display:block;position:absolute;inset:0;cursor:crosshair;}
+.sh-hud{position:fixed;top:0;left:0;right:0;z-index:200;padding:.65rem 1.2rem;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(to bottom,rgba(10,3,22,.95),transparent);}
+.sh-qb{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);background:rgba(10,3,22,.9);border:2px solid var(--border);border-radius:12px;padding:.65rem 1.5rem;z-index:200;text-align:center;white-space:nowrap;box-shadow:0 0 18px rgba(199,125,255,.18);}
+.sh-qb-lbl{font-size:.62rem;color:rgba(255,255,255,.28);letter-spacing:2px;margin-bottom:.15rem;}
+.sh-qb-cn{font-family:'Fredoka One',cursive;font-size:1.35rem;color:#fff;}
+.sh-qb-pos{font-size:.68rem;color:var(--a);margin-top:.1rem;}
+.sh-ctrl{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);font-size:.65rem;color:rgba(255,255,255,.18);z-index:200;white-space:nowrap;}
+.btwn-card{background:var(--card);border:2px solid var(--border);border-radius:24px;padding:2.2rem 2rem;text-align:center;max-width:420px;width:100%;position:relative;overflow:hidden;}
+.btwn-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--a),var(--a3));}
+.btwn-title{font-family:'Fredoka One',cursive;font-size:1.7rem;color:var(--a);margin-bottom:.5rem;}
+.btwn-score{font-family:'Fredoka One',cursive;font-size:3.5rem;margin:.4rem 0;}
+.btwn-msg{color:rgba(255,255,255,.5);font-size:.88rem;line-height:1.6;margin-bottom:.8rem;}
+.wrongs-mini{margin:.8rem 0;text-align:left;}
+.w-mini-ttl{font-size:.78rem;color:rgba(255,255,255,.3);margin-bottom:.4rem;}
+.wchip{display:inline-block;background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.25);color:#ff9090;border-radius:7px;padding:.22rem .55rem;font-size:.74rem;margin:.18rem;}
+.btn-nxt{padding:.85rem 2.5rem;font-family:'Fredoka One',cursive;font-size:1.15rem;background:linear-gradient(135deg,var(--a),#8800cc);border:none;border-radius:50px;color:#fff;cursor:pointer;box-shadow:0 5px 20px rgba(199,125,255,.35);transition:all .3s;margin-top:.8rem;}
+.btn-nxt:hover{transform:translateY(-2px) scale(1.03);}
+#s-final{background:radial-gradient(ellipse at 50% 30%,rgba(199,125,255,.1),transparent 55%),var(--bg);}
+.final-wrap{width:100%;max-width:580px;text-align:center;}
+.f-badge{display:inline-block;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);color:#ffd700;border-radius:50px;padding:.35rem 1.3rem;font-size:.78rem;letter-spacing:3px;margin-bottom:1rem;}
+.f-title{font-family:'Fredoka One',cursive;font-size:clamp(1.8rem,5vw,3rem);background:linear-gradient(135deg,#ffd700,#ff8800);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:1.5rem;}
+.score-big{font-family:'Fredoka One',cursive;font-size:clamp(4rem,12vw,7rem);line-height:1;}
+.score-big .n{background:linear-gradient(135deg,var(--a),var(--a3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.score-big .d{font-size:.35em;color:rgba(255,255,255,.25);}
+.meter-tr{width:100%;height:16px;background:rgba(255,255,255,.07);border-radius:8px;overflow:hidden;margin:.8rem 0;}
+.meter-fl{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--a),var(--a3));box-shadow:0 0 16px rgba(199,125,255,.35);transition:width 1.5s cubic-bezier(.22,1,.36,1);}
+.grade-em{font-family:'Fredoka One',cursive;font-size:1.6rem;margin:.3rem 0;color:#ffd700;}
+.grade-sub{color:rgba(255,255,255,.4);font-size:.85rem;margin-bottom:1.5rem;}
+.lv-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem;margin-bottom:1.5rem;}
+.lv-b{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1rem .8rem;text-align:center;}
+.lvb-ico{font-size:1.5rem;margin-bottom:.3rem;}
+.lvb-n{font-size:.68rem;color:rgba(255,255,255,.3);margin-bottom:.2rem;}
+.lvb-s{font-family:'Fredoka One',cursive;font-size:1.6rem;color:var(--a);}
+.lvb-m{font-size:.7rem;color:rgba(255,255,255,.25);}
+.cert{background:linear-gradient(135deg,rgba(255,215,0,.07),rgba(255,165,0,.03));border:2px solid rgba(255,215,0,.28);border-radius:22px;padding:2.2rem 1.8rem;text-align:center;position:relative;margin:1.5rem 0;}
+.cert::before{content:'';position:absolute;inset:5px;border:1px dashed rgba(255,215,0,.12);border-radius:18px;pointer-events:none;}
+.cert-ttl-cn{font-family:'Fredoka One',cursive;font-size:1.4rem;color:#ffd700;letter-spacing:3px;margin-bottom:.2rem;}
+.cert-ttl-en{font-size:.65rem;color:rgba(255,215,0,.4);letter-spacing:2px;margin-bottom:1.2rem;}
+.cert-text{color:rgba(255,255,255,.4);font-size:.82rem;margin-bottom:.3rem;}
+.cert-name{font-family:'Fredoka One',cursive;font-size:2.2rem;color:#fff;margin:.25rem 0;}
+.cert-sl{color:#ffd700;font-size:.9rem;margin:.3rem 0;}
+.cert-desc{color:rgba(255,255,255,.35);font-size:.78rem;line-height:1.6;margin-top:.8rem;}
+.cert-date{color:rgba(255,255,255,.2);font-size:.68rem;margin-top:.7rem;}
+.cert-seal{position:absolute;bottom:1.5rem;right:1.5rem;font-size:2rem;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);border-radius:50%;width:52px;height:52px;display:flex;align-items:center;justify-content:center;}
+.f-actions{display:flex;flex-wrap:wrap;gap:.85rem;justify-content:center;margin-bottom:1.5rem;}
+.f-btn{padding:.8rem 1.8rem;border-radius:50px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;transition:all .3s;border:none;}
+.f-btn-dl{background:linear-gradient(135deg,#ffd700,#ff8800);color:#000;}
+.f-btn-dl:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,215,0,.35);}
+.f-btn-re{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);color:#fff;}
+.wt-sec{text-align:left;margin-bottom:2rem;}
+.wt-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;}
+.wt-ttl{font-family:'Fredoka One',cursive;font-size:1.2rem;color:rgba(255,255,255,.6);}
+.wt-cnt{font-size:.78rem;color:rgba(255,255,255,.25);}
+table.wt{width:100%;border-collapse:collapse;font-size:.84rem;}
+table.wt th{background:rgba(255,255,255,.05);color:rgba(255,255,255,.35);padding:.6rem .8rem;text-align:left;font-size:.72rem;letter-spacing:1px;}
+table.wt td{padding:.6rem .8rem;border-bottom:1px solid rgba(255,255,255,.04);}
+table.wt tr:hover td{background:rgba(255,255,255,.03);}
+.td-lv{font-size:.72rem;color:var(--a);}
+.td-en{color:#fff;font-weight:800;}
+.td-pos{color:rgba(255,255,255,.3);font-size:.72rem;}
+.td-cn{color:rgba(255,255,255,.5);}
+.no-w{text-align:center;color:rgba(255,255,255,.25);padding:1.5rem;background:rgba(255,255,255,.03);border-radius:12px;font-size:.9rem;}
+.l-ring{position:absolute;border-radius:50%;border:1.5px solid var(--a);animation:lring 1.4s ease-out infinite;width:100px;height:100px;opacity:0;pointer-events:none;}
+@keyframes lring{0%{opacity:.5;transform:scale(.8)}100%{opacity:0;transform:scale(1.15)}}
+.toast{position:fixed;top:4.5rem;left:50%;transform:translateX(-50%);padding:.7rem 1.8rem;border-radius:50px;font-weight:800;font-size:.95rem;z-index:999;pointer-events:none;animation:tin .35s ease-out;white-space:nowrap;}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(-12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.t-ok{background:rgba(0,255,159,.92);color:#003322;}
+.t-no{background:rgba(255,55,55,.9);color:#fff;}
+#confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:300;overflow:hidden;}
+.cf{position:absolute;border-radius:2px;animation:cf-fall var(--dur,4s) var(--dl,0s) linear both;}
+@keyframes cf-fall{0%{transform:translateY(-10px) rotate(0deg);opacity:.9}100%{transform:translateY(105vh) rotate(600deg);opacity:0}}
+@media(max-width:460px){.opts-grid{grid-template-columns:1fr;}.mole-grid{gap:.5rem;}.lv-breakdown{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div id="stars-bg"></div>
+<div id="confetti-wrap"></div>
+<div id="hud">
+  <div class="hud-l">🧠 大脑世界</div>
+  <div class="hud-c"><div class="hud-pip" id="hp1">📝</div><div class="hud-pip" id="hp2">🔊</div><div class="hud-pip" id="hp3">🐹</div><div class="hud-pip" id="hp4">🛸</div></div>
+  <div class="hud-r">⭐<span id="h-score">0</span></div>
+</div>
+<div class="scr on" id="s-welcome">
+  <div style="text-align:center;max-width:460px;">
+    <div class="lv-badge">🌍 WORLD 1 · 交通世界</div>
+    <div class="big-icon">🧠</div>
+    <div class="w-title">Brain</div>
+    <div class="w-sub">大脑词汇冒险</div>
+    <div class="w-desc">四关挑战 · 每关满分50分 · 总分200分</div>
+    <div class="name-box">
+      <input class="n-inp" id="n-inp" placeholder="输入你的名字开始..." maxlength="16"/>
+      <button class="btn-go" onclick="go()">出发！🚀</button>
+    </div>
+    <div class="stage-row">
+      <div class="stage-pip"><div class="pip-icon">📝</div>选择题</div>
+      <div class="stage-pip"><div class="pip-icon" style="font-size:.8rem;color:rgba(255,255,255,.3)">→</div></div>
+      <div class="stage-pip"><div class="pip-icon">🔊</div>听音选词</div>
+      <div class="stage-pip"><div class="pip-icon" style="font-size:.8rem;color:rgba(255,255,255,.3)">→</div></div>
+      <div class="stage-pip"><div class="pip-icon">🐹</div>打地鼠</div>
+      <div class="stage-pip"><div class="pip-icon" style="font-size:.8rem;color:rgba(255,255,255,.3)">→</div></div>
+      <div class="stage-pip"><div class="pip-icon">🛸</div>打飞机</div>
+    </div>
+  </div>
+</div>
+<div class="scr" id="s-mcq-intro">
+  <div class="intro-card">
+    <div class="intro-lv">第一关 ROUND 1</div><div class="intro-icon">📝</div>
+    <div class="intro-title">选择题</div>
+    <div class="intro-rule">看中文，选出正确的英文！<br>答对 +5分，连击 +6/+7分🔥<br>共10题，满分50分</div>
+    <button class="btn-start" onclick="startMCQ()">开始！</button>
+  </div>
+</div>
+<div class="scr" id="s-mcq">
+  <div class="mcq-inner">
+    <div class="prog-wrap"><div class="prog-bar" id="prog" style="width:0%"></div></div>
+    <div class="mcq-meta"><span>题目 <span id="q-cur">1</span>/10</span><span id="q-sc">分数: 0</span></div>
+    <div class="q-card">
+      <div class="q-pos" id="q-pos"></div>
+      <div class="q-cn" id="q-cn">---</div>
+      <div class="streak" id="streak"></div>
+    </div>
+    <div class="opts-grid" id="opts"></div>
+  </div>
+</div>
+<div class="scr" id="s-between1">
+  <div class="btwn-card">
+    <div class="btwn-title">第一关完成 ✓</div>
+    <div class="btwn-score" id="b1-score" style="color:var(--a)">0<span style="font-size:1.3rem;color:rgba(255,255,255,.3)">/50</span></div>
+    <div class="btwn-msg" id="b1-msg"></div>
+    <div class="wrongs-mini" id="b1-wrongs"></div>
+    <button class="btn-nxt" onclick="showListenIntro()">下一关 🔊→</button>
+  </div>
+</div>
+
+<div class="scr" id="s-listen-intro">
+  <div class="intro-card">
+    <div class="intro-lv">第二关 ROUND 2</div><div class="intro-icon">🔊</div>
+    <div class="intro-title">听音选词</div>
+    <div class="intro-rule">点击喇叭播放英文发音<br>从4个中文选项中选出正确释义！<br>答对 +5分，连击 +6/+7分🔥<br>共10题，满分50分</div>
+    <button class="btn-start" onclick="startListen()">开始！</button>
+  </div>
+</div>
+
+<div class="scr" id="s-listen">
+  <div class="mcq-inner" style="padding-top:4.5rem;">
+    <div class="prog-wrap"><div class="prog-bar" id="lp" style="width:0%"></div></div>
+    <div class="mcq-meta"><span>题目 <span id="l-cur">1</span>/10</span><span id="l-sc-lbl">分数: 0</span></div>
+    <div class="q-card" style="padding:1.5rem;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:.75rem;">
+        <button id="l-speak-btn" onclick="lSpeak()" style="width:88px;height:88px;border-radius:50%;border:2px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;position:relative;" aria-label="播放发音">
+          <span id="l-speak-ico" style="font-size:2.2rem;">🔊</span>
+          <span class="l-ring" id="l-ring1"></span>
+          <span class="l-ring" id="l-ring2" style="animation-delay:.5s;"></span>
+        </button>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.3);">点击喇叭播放单词</div>
+        <div id="l-reveal-wrap" style="opacity:0;transition:opacity .4s;display:flex;flex-direction:column;align-items:center;gap:.3rem;"><div id="l-word-reveal" style="font-family:Fredoka One,cursive;font-size:1.6rem;color:var(--a);letter-spacing:1px;"></div><div id="l-pos-reveal" style="display:inline-block;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.6);border-radius:50px;padding:.15rem .65rem;font-size:.75rem;"></div></div>
+      </div>
+    </div>
+    <div class="streak" id="l-streak"></div>
+    <div class="opts-grid" id="l-opts"></div>
+    <div style="font-size:.8rem;color:rgba(255,255,255,.35);text-align:center;margin-top:.6rem;" id="l-fb"></div>
+  </div>
+</div>
+
+<div class="scr" id="s-between-listen">
+  <div class="btwn-card">
+    <div class="btwn-title">第三关完成 ✓</div>
+    <div class="btwn-score" id="bl-score" style="color:var(--a)">0<span style="font-size:1.3rem;color:rgba(255,255,255,.3)">/50</span></div>
+    <div class="btwn-msg" id="bl-msg"></div>
+    <div class="wrongs-mini" id="bl-wrongs"></div>
+    <button class="btn-nxt" onclick="showMoleIntro()">下一关 🐹→</button>
+  </div>
+</div>
+<div class="scr" id="s-mole-intro">
+  <div class="intro-card">
+    <div class="intro-lv">第三关 ROUND 3</div><div class="intro-icon">🐹</div>
+    <div class="intro-title">打地鼠</div>
+    <div class="intro-rule">看中文，点击正确的地鼠！<br>打对 +5分，打错 −2分<br>60秒，满分50分</div>
+    <button class="btn-start" onclick="startMole()">开始！</button>
+  </div>
+</div>
+<div class="scr" id="s-mole">
+  <div class="mole-inner">
+    <div class="mole-top-row">
+      <div class="t-ring-wrap">
+        <svg viewBox="0 0 56 56" width="56" height="56"><circle class="t-ring-bg" cx="28" cy="28" r="23" fill="none" stroke-width="5"/><circle class="t-ring-fg" id="ring" cx="28" cy="28" r="23" fill="none" stroke-width="5"/></svg>
+        <div class="t-num" id="t-num">60</div>
+      </div>
+      <div class="q-banner" style="flex:1;"><div class="qb-label">找到正确的英文单词</div><div class="qb-cn" id="m-cn">---</div><div class="qb-pos" id="m-pos"></div></div>
+      <div style="font-family:'Press Start 2P',monospace;font-size:.72rem;color:var(--a);text-align:center;white-space:nowrap;">⭐<br><span id="m-sc">0</span></div>
+    </div>
+    <div class="mole-grid" id="m-grid"></div>
+    <div style="color:rgba(255,255,255,.2);font-size:.72rem;text-align:center;">👆 点击含有正确英文的地鼠</div>
+  </div>
+</div>
+<div class="scr" id="s-between2">
+  <div class="btwn-card">
+    <div class="btwn-title">第三关完成 ✓</div>
+    <div class="btwn-score" id="b2-score" style="color:var(--a)">0<span style="font-size:1.3rem;color:rgba(255,255,255,.3)">/50</span></div>
+    <div class="btwn-msg" id="b2-msg"></div>
+    <div class="wrongs-mini" id="b2-wrongs"></div>
+    <button class="btn-nxt" onclick="showShootIntro()">最终关 🛸→</button>
+  </div>
+</div>
+<div class="scr" id="s-shoot-intro">
+  <div class="intro-card">
+    <div class="intro-lv">第四关 ROUND 4</div><div class="intro-icon">🛸</div>
+    <div class="intro-title">打飞机</div>
+    <div class="intro-rule">看题目，<b style="color:var(--a)">点击正确的单词</b>！<br>子弹自动飞向目标<br>击对 +5分，击错 −2分，60秒，满分50分</div>
+    <button class="btn-start" onclick="startShoot()">发射！🚀</button>
+  </div>
+</div>
+<div class="scr" id="s-shoot" style="position:relative;">
+  <canvas id="cv"></canvas>
+  <div class="sh-hud"><div class="hud-l">🛸 第四关</div><div class="hud-r">⏱<span id="sh-t">60</span>s &nbsp;⭐<span id="sh-s">0</span></div></div>
+  <div class="sh-qb"><div class="sh-qb-lbl">点击正确单词 CLICK TO SHOOT</div><div class="sh-qb-cn" id="sh-cn">---</div><div class="sh-qb-pos" id="sh-pos">---</div></div>
+  <div class="sh-ctrl">点击单词 → 子弹自动发射击中目标</div>
+</div>
+<div class="scr" id="s-final">
+  <div class="final-wrap">
+    <div class="f-badge">🏆 FINAL SCORE · 最终成绩</div>
+    <div class="f-title">冒险完成！</div>
+    <div class="score-big"><span class="n" id="f-num">0</span><span class="d">/200</span></div>
+    <div class="meter-tr"><div class="meter-fl" id="f-meter" style="width:0%"></div></div>
+    <div class="grade-em" id="f-grade">---</div>
+    <div class="grade-sub" id="f-gsub">---</div>
+    <div class="lv-breakdown" style="grid-template-columns:repeat(4,1fr);">
+      <div class="lv-b"><div class="lvb-ico">📝</div><div class="lvb-n">第一关</div><div class="lvb-s" id="f-s1">-</div><div class="lvb-m">/50分</div></div>
+      <div class="lv-b"><div class="lvb-ico">🔊</div><div class="lvb-n">第二关</div><div class="lvb-s" id="f-s2l">-</div><div class="lvb-m">/50分</div></div>
+      <div class="lv-b"><div class="lvb-ico">🐹</div><div class="lvb-n">第三关</div><div class="lvb-s" id="f-s2">-</div><div class="lvb-m">/50分</div></div>
+      <div class="lv-b"><div class="lvb-ico">🛸</div><div class="lvb-n">第四关</div><div class="lvb-s" id="f-s3">-</div><div class="lvb-m">/50分</div></div>
+    </div>
+    <div class="cert">
+      <div class="cert-ttl-cn">学习成就证书</div><div class="cert-ttl-en">CERTIFICATE OF ACHIEVEMENT</div>
+      <div class="cert-text">兹证明</div><div class="cert-name" id="c-name">---</div>
+      <div class="cert-text">完成了「大脑世界」全部三关挑战</div>
+      <div class="cert-sl">最终得分：<b id="c-score">---</b> / 200分</div>
+      <div class="cert-desc" id="c-desc">---</div>
+      <div class="cert-date" id="c-date"></div>
+      <div class="cert-seal" id="c-seal">🏆</div>
+    </div>
+    <div class="f-actions">
+      <button class="f-btn f-btn-dl" onclick="dlWrong()">📥 下载错题表格</button>
+      <button class="f-btn f-btn-re" onclick="location.reload()">🔄 重新挑战</button>
+    </div>
+    <div class="wt-sec" id="wt-sec"></div>
+  </div>
+</div>
+<script>
+const WORDS=[
+  {en:"organ",pos:"n.",cn:"器官"},
+  {en:"investigate",pos:"v.",cn:"调查，研究"},
+  {en:"liquid",pos:"n.",cn:"液体"},
+  {en:"phenomenon",pos:"n.",cn:"现象"},
+  {en:"ignore",pos:"v.",cn:"忽视"},
+  {en:"vision",pos:"n.",cn:"视力，视野"},
+  {en:"visible",pos:"adj.",cn:"可见的"},
+  {en:"invisible",pos:"adj.",cn:"不可见的"},
+  {en:"occur",pos:"v.",cn:"发生"},
+  {en:"alter",pos:"v.",cn:"改变"},
+  {en:"genius",pos:"n.",cn:"天才"},
+  {en:"talent",pos:"n.",cn:"天赋"},
+  {en:"talented",pos:"adj.",cn:"有天赋的"},
+  {en:"ordinary",pos:"adj.",cn:"普通的"},
+  {en:"determine",pos:"v.",cn:"决定"},
+  {en:"function",pos:"n.",cn:"功能"},
+  {en:"exceptional",pos:"adj.",cn:"杰出的"},
+  {en:"incredible",pos:"adj.",cn:"难以置信的"},
+  {en:"outstanding",pos:"adj.",cn:"杰出的"},
+  {en:"extraordinary",pos:"adj.",cn:"非凡的"},
+  {en:"concentrate on",pos:"phr.",cn:"集中注意力"},
+  {en:"carry out",pos:"phr.",cn:"执行，实施"},
+  {en:"participate in",pos:"phr.",cn:"参与"},
+  {en:"based on",pos:"phr.",cn:"基于，根据"},
+  {en:"electrical signal",pos:"phr.",cn:"电信号"},
+  {en:"respond to",pos:"phr.",cn:"对...作出反应"},
+  {en:"produce",pos:"v.",cn:"生产"},
+  {en:"theory of success",pos:"phr.",cn:"成功的理论"},
+  {en:"require",pos:"v.",cn:"需要"},
+  {en:"mindless",pos:"adj.",cn:"无头脑的"},
+  {en:"solve puzzles",pos:"phr.",cn:"解谜"},
+  {en:"work efficiently",pos:"phr.",cn:"高效工作"},
+  {en:"efficient",pos:"adj.",cn:"高效的"},
+  {en:"stimulate brain function",pos:"phr.",cn:"刺激大脑功能"},
+  {en:"be beneficial for",pos:"phr.",cn:"对...有好处"},
+  {en:"promote blood flow",pos:"phr.",cn:"促进血液循环"},
+  {en:"walnut",pos:"n.",cn:"核桃"},
+  {en:"requirement",pos:"n.",cn:"必需品"},
+];
+(function(){const c=document.getElementById('stars-bg');for(let i=0;i<90;i++){const s=document.createElement('div');s.className='s';const z=Math.random()*2.2+.4;s.style.cssText=`width:${z}px;height:${z}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${1+Math.random()*2}s;--dl:${Math.random()*2}s;`;c.appendChild(s);}})();
+
+/* ── SOUND ENGINE ── */
+const _AC=window.AudioContext||window.webkitAudioContext;
+let _ac=null;
+function _getAC(){if(!_ac){try{_ac=new _AC();}catch(e){}}return _ac;}
+function _tone(freq,type,dur,vol,delay=0){
+  const ac=_getAC();if(!ac)return;
+  try{
+    const o=ac.createOscillator(),g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);
+    o.type=type;o.frequency.value=freq;
+    const t=ac.currentTime+delay;
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(vol,t+0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.start(t);o.stop(t+dur+0.02);
+  }catch(e){}
+}
+function sndCorrect(){_tone(660,'sine',.12,.18);_tone(880,'sine',.15,.15,.08);_tone(1100,'sine',.18,.12,.15);}
+function sndWrong(){_tone(220,'sawtooth',.07,.13);_tone(165,'sawtooth',.13,.10,.07);}
+function sndStreak(){[660,740,880,1000,1200].forEach((f,i)=>_tone(f,'sine',.1,.16,i*.04));}
+function sndComplete(){[523,659,784,1047].forEach((f,i)=>_tone(f,'sine',.2,.14,i*.09));}
+function sndShoot(){_tone(900,'square',.04,.08);_tone(450,'sawtooth',.07,.05,.04);}
+function sndHit(){_tone(880,'sine',.07,.16);_tone(1200,'sine',.12,.13,.06);}
+function sndMoleHit(){_tone(700,'sine',.07,.16);_tone(980,'sine',.11,.13,.06);}
+function sndTick(){_tone(1000,'square',.04,.06);}
+const goScr=id=>{document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');};
+const shuf=a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;};
+let tTm; function toast(msg,tp){clearTimeout(tTm);document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className=`toast ${tp}`;t.textContent=msg;document.body.appendChild(t);tTm=setTimeout(()=>t.remove(),1200);}
+const MCQ_N=10,CAP=50;
+let playerName='',s1=0,sL=0,s2=0,s3=0,w1=[],wL=[],w2=[],w3=[];
+function upHUD(v){document.getElementById('h-score').textContent=v;}
+function setPip(n,st){const e=document.getElementById('hp'+n);e.classList.remove('done','active');if(st)e.classList.add(st);}
+function showHUD(y){document.getElementById('hud').style.display=y?'flex':'none';}
+function go(){const v=document.getElementById('n-inp').value.trim();if(!v){document.getElementById('n-inp').style.borderColor='#ff5050';return;}playerName=v;goScr('s-mcq-intro');}
+document.getElementById('n-inp').addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+
+/* ── MCQ ── */
+let mcqQ=[],mcqIdx=0,mcqScore=0,mcqStreak=0;
+function startMCQ(){mcqQ=shuf(WORDS).slice(0,MCQ_N);mcqIdx=0;mcqScore=0;mcqStreak=0;w1=[];showHUD(true);setPip(1,'active');setPip(2,'');setPip(3,'');setPip(4,'');goScr('s-mcq');renderQ();}
+function renderQ(){
+  const q=mcqQ[mcqIdx];
+  document.getElementById('q-cur').textContent=mcqIdx+1;
+  document.getElementById('q-pos').textContent=q.pos;
+  document.getElementById('q-cn').textContent=q.cn;
+  document.getElementById('prog').style.width=((mcqIdx/MCQ_N)*100)+'%';
+  document.getElementById('q-sc').textContent='分数: '+mcqScore;
+  document.getElementById('streak').textContent=mcqStreak>=2?`🔥 连击×${mcqStreak}！`:'';
+  const pool=shuf([q,...shuf(WORDS.filter(w=>w.en!==q.en)).slice(0,3)]);
+  const wrap=document.getElementById('opts');wrap.innerHTML='';
+  pool.forEach(o=>{const b=document.createElement('button');b.className='opt';b.textContent=o.en;b.onclick=()=>pickQ(b,o.en,q);wrap.appendChild(b);});
+}
+function pickQ(btn,chosen,q){
+  if(document.querySelector('.opt.lk'))return;
+  document.querySelectorAll('.opt').forEach(o=>o.classList.add('lk'));
+  const ok=chosen===q.en;
+  document.querySelectorAll('.opt').forEach(o=>{if(o.textContent===q.en)o.classList.add('ok');});
+  if(!ok){btn.classList.add('no');mcqStreak=0;w1.push(q);sndWrong();toast('✗ 正确：'+q.en,'t-no');}
+  else{mcqStreak++;const pts=mcqStreak>=3?7:mcqStreak>=2?6:5;mcqScore=Math.min(CAP,mcqScore+pts);if(mcqStreak>=3)sndStreak();else sndCorrect();toast(mcqStreak>=2?`🔥 连击 +${pts}分`:'✓ 正确！+5分','t-ok');}
+  upHUD(mcqScore);
+  setTimeout(()=>{mcqIdx++;if(mcqIdx>=MCQ_N)endMCQ();else renderQ();},ok?480:1000);
+}
+function endMCQ(){
+  s1=mcqScore;setPip(1,'done');showHUD(false);
+  document.getElementById('b1-score').innerHTML=s1+'<span style="font-size:1.3rem;color:rgba(255,255,255,.3)">/50</span>';
+  const p=s1/CAP;document.getElementById('b1-msg').textContent=p>=.9?'太棒了！全对！🌟':p>=.65?'做得不错！😊':'多练就会进步！💪';
+  document.getElementById('b1-wrongs').innerHTML=w1.length?'<div class="w-mini-ttl">❌ 本关错题</div>'+w1.map(x=>`<span class="wchip">${x.cn}→${x.en}</span>`).join(''):'';
+  sndComplete();goScr('s-between1');
+}
+
+
+/* ── LISTEN ── */
+const LISTEN_N=10;
+let lQ=[],lIdx=0,lScore=0,lStreak=0,lCur=null,lVoices=[];
+function initVoices(){lVoices=window.speechSynthesis?window.speechSynthesis.getVoices().filter(v=>v.lang.startsWith('en')):[];if(!lVoices.length&&window.speechSynthesis)window.speechSynthesis.onvoiceschanged=()=>{lVoices=window.speechSynthesis.getVoices().filter(v=>v.lang.startsWith('en'));};}
+if(window.speechSynthesis)initVoices();
+function showListenIntro(){goScr('s-listen-intro');}
+function startListen(){
+  lQ=shuf(WORDS).slice(0,LISTEN_N);lIdx=0;lScore=0;lStreak=0;wL=[];
+  showHUD(true);setPip(1,'done');setPip(2,'active');setPip(3,'');setPip(4,'');
+  goScr('s-listen');renderListen();
+}
+function renderListen(){
+  lCur=lQ[lIdx];
+  document.getElementById('l-cur').textContent=lIdx+1;
+  document.getElementById('lp').style.width=((lIdx/LISTEN_N)*100)+'%';
+  document.getElementById('l-sc-lbl').textContent='分数: '+lScore;
+  document.getElementById('l-streak').textContent=lStreak>=2?'🔥 连击×'+lStreak+'！':'';
+  const rw=document.getElementById('l-reveal-wrap');if(rw)rw.style.opacity='0';
+  document.getElementById('l-fb').textContent='';
+  const pool=shuf([lCur,...shuf(WORDS.filter(w=>w.en!==lCur.en)).slice(0,3)]);
+  const wrap=document.getElementById('l-opts');wrap.innerHTML='';
+  pool.forEach(o=>{const b=document.createElement('button');b.className='opt';b.textContent=o.cn;b.onclick=()=>pickListen(b,o.cn);wrap.appendChild(b);});
+  setTimeout(lSpeak,350);
+}
+function lSpeak(){
+  if(!lCur||!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const btn=document.getElementById('l-speak-btn');
+  const utt=new SpeechSynthesisUtterance(lCur.en);
+  const v=lVoices.find(v=>v.lang==='en-GB')||lVoices.find(v=>v.lang==='en-US')||lVoices[0];
+  if(v)utt.voice=v;utt.rate=0.85;utt.pitch=1;
+  btn.style.borderColor='var(--a)';btn.style.background='rgba(255,255,255,.1)';
+  utt.onend=()=>{btn.style.borderColor='';btn.style.background='var(--card)';};
+  utt.onerror=()=>{btn.style.borderColor='';btn.style.background='var(--card)';};
+  window.speechSynthesis.speak(utt);
+}
+function pickListen(btn,chosen){
+  if(document.querySelector('#l-opts .lk'))return;
+  document.querySelectorAll('#l-opts .opt').forEach(o=>o.classList.add('lk'));
+  const ok=chosen===lCur.cn;
+  document.querySelectorAll('#l-opts .opt').forEach(o=>{if(o.textContent===lCur.cn)o.classList.add('ok');});
+  const rev=document.getElementById('l-reveal-wrap');
+  document.getElementById('l-word-reveal').textContent=lCur.en;
+  document.getElementById('l-pos-reveal').textContent=lCur.pos||'';
+  if(rev)rev.style.opacity='1';
+  if(!ok){btn.classList.add('no');lStreak=0;wL.push(lCur);sndWrong();document.getElementById('l-fb').innerHTML='<span style="color:rgba(255,100,100,.8)">✗ 正确：'+lCur.cn+'（'+lCur.en+'）</span>';}
+  else{lStreak++;const pts=lStreak>=3?7:lStreak>=2?6:5;lScore=Math.min(50,lScore+pts);if(lStreak>=3)sndStreak();else sndCorrect();toast(lStreak>=2?'🔥 连击 +'+pts+'分':'✓ 正确！+5分','t-ok');document.getElementById('l-sc-lbl').textContent='分数: '+lScore;}
+  upHUD(s1+lScore);
+  setTimeout(()=>{lIdx++;if(lIdx>=LISTEN_N)endListen();else renderListen();},ok?500:1100);
+}
+function endListen(){
+  sL=lScore;setPip(2,'done');showHUD(false);
+  document.getElementById('bl-score').innerHTML=sL+'<span style="font-size:1.3rem;color:rgba(255,255,255,.3)">/50</span>';
+  const p=sL/50;document.getElementById('bl-msg').textContent=p>=.9?'听力超强！几乎全对！👂':p>=.65?'不错！耳朵越来越灵！😊':'多听多练，你会越来越好！💪';
+  const uq=[...new Map(wL.map(x=>[x.en,x])).values()].slice(0,8);
+  document.getElementById('bl-wrongs').innerHTML=uq.length?'<div class="w-mini-ttl">❌ 本关错题</div>'+uq.map(x=>'<span class="wchip">'+x.cn+'→'+x.en+'</span>').join(''):'';
+  sndComplete();goScr('s-between-listen');
+}
+/* ── MOLE ── */
+let mScore=0,mTime=60,mCur=null,mWQ=[],mWI=0,mTIntv=null;
+function showMoleIntro(){goScr('s-mole-intro');}
+function startMole(){
+  mScore=0;mTime=60;w2=[];mWQ=shuf([...WORDS]);mWI=0;
+  showHUD(true);setPip(1,'done');setPip(2,'active');setPip(3,'');setPip(4,'');
+  buildMoleGrid();goScr('s-mole');pickNewMole();
+  mTIntv=setInterval(()=>{
+    mTime--;document.getElementById('t-num').textContent=mTime;
+    const r=document.getElementById('ring');r.style.strokeDashoffset=145*(1-mTime/60);
+    if(mTime<=10){r.style.stroke='#ff4646';sndTick();}
+    if(mTime<=0)endMole();
+  },1000);
+}
+function buildMoleGrid(){
+  const g=document.getElementById('m-grid');g.innerHTML='';
+  for(let i=0;i<9;i++){const h=document.createElement('div');h.className='hole';h.innerHTML='<div class="h-ico">🐹</div><div class="h-txt"></div>';h.onclick=()=>whack(i);g.appendChild(h);}
+}
+function pickNewMole(){
+  if(mTime<=0)return;
+  if(mWI>=mWQ.length)mWI=0;
+  mCur=mWQ[mWI++];
+  document.getElementById('m-cn').textContent=mCur.cn;
+  document.getElementById('m-pos').textContent=mCur.pos;
+  const wrong=shuf(WORDS.filter(w=>w.en!==mCur.en)).slice(0,8);
+  const pool=shuf([mCur,...wrong]);
+  document.querySelectorAll('.hole').forEach((h,i)=>{
+    h.className='hole';h.dataset.c=pool[i].en===mCur.en?'1':'0';
+    h.querySelector('.h-ico').textContent='🐹';h.querySelector('.h-txt').textContent=pool[i].en;
+  });
+}
+function whack(i){
+  if(mTime<=0)return;
+  const h=document.querySelectorAll('.hole')[i];
+  if(h.dataset.c==='1'){
+    h.className='hole ok';sndMoleHit();mScore=Math.min(CAP,mScore+5);
+    document.getElementById('m-sc').textContent=mScore;upHUD(s1+sL+mScore);toast('+5分 ✓','t-ok');
+    setTimeout(pickNewMole,380);
+  } else {
+    h.className='hole no';sndWrong();mScore=Math.max(0,mScore-2);
+    document.getElementById('m-sc').textContent=mScore;upHUD(s1+sL+mScore);
+    w2.push({...mCur});toast('−2分 ✗','t-no');
+    setTimeout(()=>h.className='hole',380);
+  }
+}
+function endMole(){
+  clearInterval(mTIntv);s2=mScore;setPip(3,'done');showHUD(false);
+  document.getElementById('b2-score').innerHTML=s2+'<span style="font-size:1.3rem;color:rgba(255,255,255,.3)">/50</span>';
+  const p=s2/CAP;document.getElementById('b2-msg').textContent=p>=.85?'打地鼠高手！🔨':p>=.6?'不错！继续冲！😊':'再练练更快！💪';
+  const uq=[...new Map(w2.map(x=>[x.en,x])).values()].slice(0,8);
+  document.getElementById('b2-wrongs').innerHTML=uq.length?'<div class="w-mini-ttl">❌ 本关错题</div>'+uq.map(x=>`<span class="wchip">${x.cn}→${x.en}</span>`).join(''):'';
+  sndComplete();goScr('s-between2');
+}
+
+/* ── SHOOT ── */
+let cv2,ctx2,W2,H2;
+let shScore=0,shTime=60,shCur=null,shWQ=[],shWI=0,shDone=false;
+let shTgts=[],shBullets=[],shParts=[],shRaf=null,shTIntv=null;
+function showShootIntro(){goScr('s-shoot-intro');}
+function startShoot(){
+  goScr('s-shoot');cv2=document.getElementById('cv');ctx2=cv2.getContext('2d');
+  resizeSh();window.addEventListener('resize',resizeSh);
+  shWQ=shuf([...WORDS]);shWI=0;shScore=0;shTime=60;shDone=false;
+  shBullets=[];shParts=[];shTgts=[];w3=[];
+  showHUD(true);setPip(1,'done');setPip(2,'done');setPip(3,'active');setPip(4,'');
+  document.getElementById('sh-t').textContent=60;document.getElementById('sh-s').textContent=0;
+  nextShQ();spawnShTgts();
+  shTIntv=setInterval(()=>{shTime--;document.getElementById('sh-t').textContent=shTime;if(shTime<=0){shDone=true;clearInterval(shTIntv);endShoot();}},1000);
+  cv2.onclick=onShClick;
+  shRaf=requestAnimationFrame(shLoop);
+}
+function resizeSh(){W2=cv2.width=window.innerWidth;H2=cv2.height=window.innerHeight;}
+function nextShQ(){if(shWI>=shWQ.length)shWI=0;shCur=shWQ[shWI++];document.getElementById('sh-cn').textContent=shCur.cn;document.getElementById('sh-pos').textContent=shCur.pos;}
+function spawnShTgts(){
+  if(!shCur)return;
+  const wrong=shuf(WORDS.filter(x=>x.en!==shCur.en)).slice(0,3);
+  const pool=shuf([shCur,...wrong]);
+  shTgts=pool.map((wd,i)=>{
+    const col=i%2,row=Math.floor(i/2);
+    const bw=Math.min(wd.en.length*11+28,160),bh=40;
+    return{x:W2*0.25+col*(W2*0.5),y:90+row*85,w:bw,h:bh,word:wd,alive:true,bob:Math.random()*Math.PI*2};
+  });
+}
+function onShClick(e){
+  if(shDone)return;
+  const rect=cv2.getBoundingClientRect();
+  const sx=cv2.width/rect.width,sy=cv2.height/rect.height;
+  const mx=(e.clientX-rect.left)*sx,my=(e.clientY-rect.top)*sy;
+  let hit=null;
+  shTgts.forEach(tg=>{if(tg.alive&&mx>tg.x-tg.w/2&&mx<tg.x+tg.w/2&&my>tg.y-tg.h/2&&my<tg.y+tg.h/2)hit=tg;});
+  if(!hit)return;
+  sndShoot();shBullets.push({x:W2/2,y:H2-50,tx:hit.x,ty:hit.y,prog:0,target:hit,done:false});
+}
+function addShParts(x,y,ok){for(let i=0;i<14;i++){const a=Math.random()*Math.PI*2,sp=2+Math.random()*3;shParts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-1,life:28,max:28,r:3+Math.random()*2,ok});}}
+function shLoop(){
+  shRaf=requestAnimationFrame(shLoop);if(!ctx2)return;
+  ctx2.clearRect(0,0,W2,H2);
+  ctx2.strokeStyle='rgba(199,125,255,.04)';ctx2.lineWidth=1;
+  for(let x=0;x<W2;x+=55){ctx2.beginPath();ctx2.moveTo(x,0);ctx2.lineTo(x,H2);ctx2.stroke();}
+  for(let y=0;y<H2;y+=55){ctx2.beginPath();ctx2.moveTo(0,y);ctx2.lineTo(W2,y);ctx2.stroke();}
+  ctx2.font='36px serif';ctx2.textAlign='center';ctx2.textBaseline='middle';ctx2.fillText('🚀',W2/2,H2-35);
+  const t=Date.now()/1000;
+  shTgts.forEach(tg=>{
+    if(!tg.alive)return;
+    const by=tg.y+Math.sin(t*1.2+tg.bob)*5;
+    ctx2.fillStyle='rgba(199,125,255,.1)';rrC(tg.x-tg.w/2,by-tg.h/2,tg.w,tg.h,9);ctx2.fill();
+    ctx2.strokeStyle='rgba(199,125,255,.45)';ctx2.lineWidth=1.5;rrC(tg.x-tg.w/2,by-tg.h/2,tg.w,tg.h,9);ctx2.stroke();
+    ctx2.fillStyle='#fff';ctx2.font='bold 13px Nunito,sans-serif';ctx2.textAlign='center';ctx2.textBaseline='middle';ctx2.fillText(tg.word.en,tg.x,by);
+  });
+  shBullets.forEach(bl=>{
+    if(bl.done)return;bl.prog=Math.min(1,bl.prog+0.08);
+    const bx=bl.x+(bl.tx-bl.x)*bl.prog,by=bl.y+(bl.ty-bl.y)*bl.prog;
+    const tl=Math.min(bl.prog,.15),tx0=bl.x+(bl.tx-bl.x)*(bl.prog-tl),ty0=bl.y+(bl.ty-bl.y)*(bl.prog-tl);
+    const g=ctx2.createLinearGradient(tx0,ty0,bx,by);
+    g.addColorStop(0,'rgba(255,220,0,0)');g.addColorStop(1,'rgba(255,230,60,.95)');
+    ctx2.strokeStyle=g;ctx2.lineWidth=3;ctx2.lineCap='round';
+    ctx2.beginPath();ctx2.moveTo(tx0,ty0);ctx2.lineTo(bx,by);ctx2.stroke();
+    ctx2.fillStyle='rgba(255,235,80,.9)';ctx2.beginPath();ctx2.arc(bx,by,3.5,0,Math.PI*2);ctx2.fill();
+    ctx2.fillStyle='rgba(255,255,200,1)';ctx2.beginPath();ctx2.arc(bx,by,1.5,0,Math.PI*2);ctx2.fill();
+    if(bl.prog<0.08){ctx2.fillStyle=`rgba(255,230,80,${(0.08-bl.prog)/0.08*.5})`;ctx2.beginPath();ctx2.arc(W2/2,H2-50,9,0,Math.PI*2);ctx2.fill();}
+    if(bl.prog>=1){
+      bl.done=true;const tg=bl.target;
+      if(tg.alive){
+        tg.alive=false;addShParts(tg.x,tg.y,tg.word.en===shCur.en);
+        if(tg.word.en===shCur.en){sndHit();shScore=Math.min(CAP,shScore+5);document.getElementById('sh-s').textContent=shScore;upHUD(s1+sL+s2+shScore);toast('✓ 击中！+5分','t-ok');setTimeout(()=>{nextShQ();spawnShTgts();},320);}
+        else{sndWrong();shScore=Math.max(0,shScore-2);document.getElementById('sh-s').textContent=shScore;upHUD(s1+s2+shScore);w3.push({...shCur});toast('✗ 打错 −2分','t-no');setTimeout(()=>{if(!shTgts.some(t=>t.alive))spawnShTgts();},200);}
+      }
+    }
+  });
+  shBullets=shBullets.filter(b=>!b.done);
+  shParts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.12;p.life--;const a=p.life/p.max;ctx2.globalAlpha=a;ctx2.fillStyle=p.ok?'rgba(255,210,0,1)':'rgba(220,60,60,1)';ctx2.beginPath();ctx2.arc(p.x,p.y,p.r*a,0,Math.PI*2);ctx2.fill();});
+  ctx2.globalAlpha=1;shParts=shParts.filter(p=>p.life>0);
+}
+function rrC(x,y,w,h,r){ctx2.beginPath();ctx2.moveTo(x+r,y);ctx2.lineTo(x+w-r,y);ctx2.quadraticCurveTo(x+w,y,x+w,y+r);ctx2.lineTo(x+w,y+h-r);ctx2.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx2.lineTo(x+r,y+h);ctx2.quadraticCurveTo(x,y+h,x,y+h-r);ctx2.lineTo(x,y+r);ctx2.quadraticCurveTo(x,y,x+r,y);ctx2.closePath();}
+function endShoot(){clearInterval(shTIntv);cancelAnimationFrame(shRaf);window.removeEventListener('resize',resizeSh);s3=shScore;setPip(3,'done');showHUD(false);sndComplete();showFinal();}
+
+/* ── FINAL ── */
+const GRADES=[
+  {min:180,em:'👑🏆',lb:'满分王者！',desc:'三关近乎完美！大脑词汇绝对冠军！',seal:'👑'},
+  {min:140,em:'🌟🎖️',lb:'优秀！',desc:'表现出色！继续保持！',seal:'🌟'},
+  {min:100,em:'😊🎉',lb:'进步达人！',desc:'基础扎实！多复习错题！',seal:'🎉'},
+  {min:60,em:'💪📚',lb:'努力勇士！',desc:'认真复习错题表！',seal:'💪'},
+  {min:0,em:'🌱🔰',lb:'加油新芽！',desc:'多练就会进步！',seal:'🌱'},
+];
+function showFinal(){
+  const total=s1+sL+s2+s3,g=GRADES.find(x=>total>=x.min);
+  document.getElementById('c-name').textContent=playerName;document.getElementById('c-score').textContent=total;
+  document.getElementById('c-desc').textContent=g.desc;document.getElementById('c-seal').textContent=g.seal;
+  document.getElementById('c-date').textContent='完成日期：'+new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('f-grade').textContent=g.em+' '+g.lb;document.getElementById('f-gsub').textContent=g.desc;
+  document.getElementById('f-s1').textContent=s1;document.getElementById('f-s2l').textContent=sL;document.getElementById('f-s2').textContent=s2;document.getElementById('f-s3').textContent=s3;
+  if(total>=75){const wrap=document.getElementById('confetti-wrap');const cols=['#00d4ff','#ff6b35','#00ff9f','#ffd700','#c77dff','#fff'];for(let i=0;i<50;i++){const el=document.createElement('div');el.className='cf';el.style.cssText=`left:${Math.random()*100}%;background:${cols[i%cols.length]};--dur:${3+Math.random()*3.5}s;--dl:${Math.random()*2}s;width:${6+Math.random()*7}px;height:${6+Math.random()*7}px;border-radius:${Math.random()<.5?'50%':'2px'};`;wrap.appendChild(el);}}
+  goScr('s-final');
+  let d=0;const ai=setInterval(()=>{d=Math.min(d+Math.ceil((total-d)/7+1),total);document.getElementById('f-num').textContent=d;if(d>=total)clearInterval(ai);},28);
+  setTimeout(()=>document.getElementById('f-meter').style.width=(total/200*100)+'%',120);
+  const allW=[...w1.map(x=>({...x,lv:'第一关'})),...([...new Map(wL.map(x=>[x.en,x])).values()]).map(x=>({...x,lv:'第二关'})),...([...new Map(w2.map(x=>[x.en,x])).values()]).map(x=>({...x,lv:'第三关'})),...([...new Map(w3.map(x=>[x.en,x])).values()]).map(x=>({...x,lv:'第四关'}))];
+  const seen=new Set();const uall=allW.filter(x=>{const k=x.lv+x.en;if(seen.has(k))return false;seen.add(k);return true;});
+  const sec=document.getElementById('wt-sec');
+  sec.innerHTML=uall.length===0?'<div class="no-w">🎉 三关全对！满分学霸！</div>':`<div class="wt-hd"><div class="wt-ttl">📖 错题总结</div><div class="wt-cnt">共${uall.length}题</div></div><table class="wt"><thead><tr><th>关卡</th><th>单词</th><th>词性</th><th>中文释义</th></tr></thead><tbody>${uall.map(x=>`<tr><td class="td-lv">${x.lv}</td><td class="td-en">${x.en}</td><td class="td-pos">${x.pos||''}</td><td class="td-cn">${x.cn}</td></tr>`).join('')}</tbody></table>`;
+  window._allWrongs=uall;
+}
+function dlWrong(){const u=window._allWrongs||[];if(!u.length){alert('没有错题！');return;}let c='\uFEFF关卡,单词,词性,中文释义\n';u.forEach(x=>{c+=`"${x.lv}","${x.en}","${x.pos||''}","${x.cn}"\n`;});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:'text/csv;charset=utf-8'}));a.download=`${playerName}_大脑世界错题.csv`;a.click();}
+</script>
+</body>
+</html>
