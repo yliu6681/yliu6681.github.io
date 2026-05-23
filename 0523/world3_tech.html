@@ -492,7 +492,7 @@ function lSpeak(){
   const ss=window.speechSynthesis;
   if(ss.paused) ss.resume();
   
-  // 在用户手势中同步刷新语音列表（Android Chrome 经常第一次为空）
+  // 刷新语音列表
   if(!lVoices.length){
     lVoices=ss.getVoices().filter(v=>v.lang.startsWith('en'));
   }
@@ -501,10 +501,13 @@ function lSpeak(){
     if(v2.length) lVoices=v2.filter(v=>v.lang.startsWith('en'));
   }
   
+  const best=lVoices.find(v=>v.lang==='en-GB')||lVoices.find(v=>v.lang==='en-US')||lVoices.find(v=>v.lang.startsWith('en'))||null;
+  
   const doSpeak=(voiceOverride)=>{
     if(!lCur)return;
     const utt=new SpeechSynthesisUtterance(lCur.en);
     _lastUtt=utt;
+    utt.lang='en-US';
     if(voiceOverride)utt.voice=voiceOverride;
     utt.rate=0.85;utt.pitch=1;
     const btn=document.getElementById('l-speak-btn');
@@ -513,24 +516,22 @@ function lSpeak(){
     if(ico)ico.textContent='🔊';
     const r1=document.getElementById('l-ring1');const r2=document.getElementById('l-ring2');if(r1)r1.style.animationPlayState='running';if(r2)r2.style.animationPlayState='running';
     utt.onend=()=>{if(btn){btn.style.borderColor='';btn.style.background='var(--card)';}};
+    let _retry=false;
     utt.onerror=(e)=>{
       if(btn){btn.style.borderColor='';btn.style.background='var(--card)';}
       if(e.error==='canceled'||e.error==='interrupted')return;
+      // 如果指定 voice 失败，尝试用默认语音（中文引擎也能硬读英文）
+      if(!_retry&&voiceOverride){
+        _retry=true;
+        setTimeout(()=>doSpeak(null),80);
+        return;
+      }
       console.error('TTS error',e.error);
     };
     ss.speak(utt);
   };
   
-  const best=lVoices.find(v=>v.lang==='en-GB')||lVoices.find(v=>v.lang==='en-US')||lVoices.find(v=>v.lang.startsWith('en'))||null;
-  
-  if(best){
-    if(ss.speaking||ss.pending){ss.cancel();setTimeout(()=>doSpeak(best),60);}
-    else{doSpeak(best);}
-  }else{
-    // 无明确英语语音，尝试用默认语音直接播放
-    if(ss.speaking||ss.pending){ss.cancel();setTimeout(()=>doSpeak(null),60);}
-    else{doSpeak(null);}
-  }
+  doSpeak(best);
 }
 function pickListen(btn,chosen){
   if(document.querySelector('#l-opts .lk'))return;
