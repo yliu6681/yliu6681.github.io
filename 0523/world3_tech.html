@@ -146,6 +146,7 @@ table.wt tr:hover td{background:rgba(255,255,255,.03);}
 .no-w{text-align:center;color:rgba(255,255,255,.25);padding:1.5rem;background:rgba(255,255,255,.03);border-radius:12px;font-size:.9rem;}
 .l-ring{position:absolute;border-radius:50%;border:1.5px solid var(--a);animation:lring 1.4s ease-out infinite;width:100px;height:100px;opacity:0;pointer-events:none;}
 @keyframes lring{0%{opacity:.5;transform:scale(.8)}100%{opacity:0;transform:scale(1.15)}}
+@keyframes l-btn-pulse{0%,100%{transform:scale(1);box-shadow:0 0 0 rgba(255,255,255,0)}50%{transform:scale(1.08);box-shadow:0 0 18px rgba(255,255,255,.25)}}
 .toast{position:fixed;top:4.5rem;left:50%;transform:translateX(-50%);padding:.7rem 1.8rem;border-radius:50px;font-weight:800;font-size:.95rem;z-index:999;pointer-events:none;animation:tin .35s ease-out;white-space:nowrap;}
 @keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(-12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 .t-ok{background:rgba(57,255,20,.92);color:#003322;}
@@ -370,38 +371,105 @@ const WORDS=[
 ];
 (function(){const c=document.getElementById('stars-bg');for(let i=0;i<90;i++){const s=document.createElement('div');s.className='s';const z=Math.random()*2.2+.4;s.style.cssText=`width:${z}px;height:${z}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${1+Math.random()*2}s;--dl:${Math.random()*2}s;`;c.appendChild(s);}})();
 
-/* ── SOUND ENGINE ── */
-const _AC=window.AudioContext||window.webkitAudioContext;
-let _ac=null;
-function _getAC(){if(!_ac){try{_ac=new _AC();}catch(e){}}return _ac;}
-function _tone(freq,type,dur,vol,delay=0){
-  const ac=_getAC();if(!ac)return;
-  try{
-    const o=ac.createOscillator(),g=ac.createGain();
-    o.connect(g);g.connect(ac.destination);
-    o.type=type;o.frequency.value=freq;
-    const t=ac.currentTime+delay;
+
+/* ── SOUND ── */
+(function(){
+  var AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC)return;
+  var ac=new AC();
+  /* unlock on first touch/click — iOS needs this */
+  function unlock(){
+    if(ac.state==='suspended')ac.resume();
+    document.removeEventListener('touchstart',unlock);
+    document.removeEventListener('mousedown',unlock);
+  }
+  document.addEventListener('touchstart',unlock,{passive:true});
+  document.addEventListener('mousedown',unlock,{passive:true});
+
+  var mg=ac.createGain(); mg.gain.value=0.45; mg.connect(ac.destination);
+
+  function note(hz,dur,vol,t0,wave){
+    /* always add 0.05s buffer so scheduling never lands in the past */
+    var t=ac.currentTime+0.05+(t0||0);
+    var o=ac.createOscillator(),g=ac.createGain();
+    o.type=wave||'sine'; o.frequency.value=hz;
+    o.connect(g); g.connect(mg);
     g.gain.setValueAtTime(0,t);
     g.gain.linearRampToValueAtTime(vol,t+0.01);
     g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
-    o.start(t);o.stop(t+dur+0.02);
-  }catch(e){}
+    o.start(t); o.stop(t+dur+0.05);
+  }
+  function bell(hz,dur,vol,t0){
+    note(hz,     dur,     vol,    t0);
+    note(hz*2,   dur*0.5, vol*0.2,t0);
+  }
+
+  window.sndCorrect =function(){bell(523,.18,.3,0);bell(659,.22,.22,.1);};
+  window.sndWrong   =function(){note(260,.05,.3,0);note(200,.1,.25,.05);note(155,.18,.2,.12);};
+  window.sndStreak  =function(){[261,329,392,440,523].forEach(function(f,i){bell(f,.15,.28,i*.055);});};
+  window.sndComplete=function(){[262,330,392,523,659].forEach(function(f,i){bell(f,.25,.22,i*.08);});};
+  window.sndShoot   =function(){
+    var t=ac.currentTime+0.05;
+    var o=ac.createOscillator(),g=ac.createGain();
+    o.type='sine'; o.connect(g); g.connect(mg);
+    o.frequency.setValueAtTime(700,t);
+    o.frequency.exponentialRampToValueAtTime(180,t+0.1);
+    g.gain.setValueAtTime(0.25,t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.1);
+    o.start(t); o.stop(t+0.15);
+  };
+  window.sndHit     =function(){bell(880,.15,.3,0);bell(1100,.18,.2,.07);};
+  window.sndMoleHit =function(){bell(660,.13,.3,0);bell(880,.16,.2,.07);};
+  window.sndTick    =function(){note(1100,.04,.2,0);};
+})();
+/* fallback stubs if AudioContext unavailable */
+['sndCorrect','sndWrong','sndStreak','sndComplete','sndShoot','sndHit','sndMoleHit','sndTick']
+  .forEach(function(n){if(!window[n])window[n]=function(){};});
+
+/* ── TTS ── */
+var _ttsVoices=[];
+function _loadTTSVoices(){
+  if(!window.speechSynthesis)return;
+  var v=speechSynthesis.getVoices();
+  if(v.length)_ttsVoices=v;
 }
-function sndCorrect(){_tone(660,'sine',.12,.18);_tone(880,'sine',.15,.15,.08);_tone(1100,'sine',.18,.12,.15);}
-function sndWrong(){_tone(220,'sawtooth',.07,.13);_tone(165,'sawtooth',.13,.10,.07);}
-function sndStreak(){[660,740,880,1000,1200].forEach((f,i)=>_tone(f,'sine',.1,.16,i*.04));}
-function sndComplete(){[523,659,784,1047].forEach((f,i)=>_tone(f,'sine',.2,.14,i*.09));}
-function sndShoot(){_tone(900,'square',.04,.08);_tone(450,'sawtooth',.07,.05,.04);}
-function sndHit(){_tone(880,'sine',.07,.16);_tone(1200,'sine',.12,.13,.06);}
-function sndMoleHit(){_tone(700,'sine',.07,.16);_tone(980,'sine',.11,.13,.06);}
-function sndTick(){_tone(1000,'square',.04,.06);}
+if(window.speechSynthesis){
+  _loadTTSVoices();
+  speechSynthesis.onvoiceschanged=_loadTTSVoices;
+}
+function _bestVoice(){
+  return _ttsVoices.find(function(v){return v.lang==='en-GB';})
+      ||_ttsVoices.find(function(v){return v.lang==='en-US';})
+      ||_ttsVoices.find(function(v){return v.lang&&v.lang.startsWith('en');})
+      ||null;
+}
+function lSpeak(){
+  if(!lCur||!window.speechSynthesis)return;
+  /* re-fetch voices — Safari often populates them late */
+  _loadTTSVoices();
+  speechSynthesis.cancel();
+  var utt=new SpeechSynthesisUtterance(lCur.en);
+  utt.lang='en-GB'; utt.rate=0.82; utt.pitch=1;
+  var v=_bestVoice(); if(v)utt.voice=v;
+  var btn=document.getElementById('l-speak-btn');
+  if(btn){btn.style.borderColor='var(--a)';btn.style.background='rgba(255,255,255,.1)';}
+  utt.onend=function(){if(btn){btn.style.borderColor='';btn.style.background='var(--card)';}};
+  utt.onerror=function(){if(btn){btn.style.borderColor='';btn.style.background='var(--card)';}};
+  speechSynthesis.speak(utt);
+}
+
+/* snd aliases */
+var sndCorrect=window.sndCorrect,sndWrong=window.sndWrong,
+    sndStreak=window.sndStreak,sndComplete=window.sndComplete,
+    sndShoot=window.sndShoot,sndHit=window.sndHit,
+    sndMoleHit=window.sndMoleHit,sndTick=window.sndTick;
 const goScr=id=>{document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');};
 const shuf=a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;};
 let tTm; function toast(msg,tp){clearTimeout(tTm);document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className=`toast ${tp}`;t.textContent=msg;document.body.appendChild(t);tTm=setTimeout(()=>t.remove(),1200);}
 const MCQ_N=10,CAP=50;
 let playerName='',s1=0,sL=0,s2=0,s3=0,w1=[],wL=[],w2=[],w3=[];
 function upHUD(v){document.getElementById('h-score').textContent=v;}
-function setPip(n,st){const e=document.getElementById('hp'+n);e.classList.remove('done','active');if(st)e.classList.add(st);}
+function setPip(n,st){const e=document.getElementById('hp'+n);if(!e)return;e.classList.remove('done','active');if(st)e.classList.add(st);}
 function showHUD(y){document.getElementById('hud').style.display=y?'flex':'none';}
 function go(){const v=document.getElementById('n-inp').value.trim();if(!v){document.getElementById('n-inp').style.borderColor='#ff5050';return;}playerName=v;goScr('s-mcq-intro');}
 document.getElementById('n-inp').addEventListener('keydown',e=>{if(e.key==='Enter')go();});
@@ -442,34 +510,12 @@ function endMCQ(){
 
 /* ── LISTEN ── */
 const LISTEN_N=10;
-let lQ=[],lIdx=0,lScore=0,lStreak=0,lCur=null,lVoices=[];
-function initVoices(){
-  if(!window.speechSynthesis) return;
-  lVoices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
-  if(!lVoices.length){
-    window.speechSynthesis.onvoiceschanged = () => {
-      lVoices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
-    };
-    window.speechSynthesis.getVoices();
-  }
-}
-if(window.speechSynthesis) initVoices();
+let lQ=[],lIdx=0,lScore=0,lStreak=0,lCur=null;
+/* ── TTS helpers ── */
 
-/* -- TTS unlock for mobile -- */
-(function(){
-  const unlock = () => {
-    if(window.speechSynthesis) {
-      window.speechSynthesis.resume();
-      window.speechSynthesis.getVoices();
-    }
-  };
-  document.addEventListener('click', unlock, {once:true});
-  document.addEventListener('touchstart', unlock, {once:true});
-})();
 function showListenIntro(){goScr('s-listen-intro');}
 function startListen(){
   lQ=shuf(WORDS).slice(0,LISTEN_N);lIdx=0;lScore=0;lStreak=0;wL=[];
-  if(window.speechSynthesis && !lVoices.length) lVoices=window.speechSynthesis.getVoices().filter(v=>v.lang.startsWith('en'));
   showHUD(true);setPip(1,'done');setPip(2,'active');setPip(3,'');setPip(4,'');
   goScr('s-listen');renderListen();
 }
@@ -484,57 +530,10 @@ function renderListen(){
   const pool=shuf([lCur,...shuf(WORDS.filter(w=>w.en!==lCur.en)).slice(0,3)]);
   const wrap=document.getElementById('l-opts');wrap.innerHTML='';
   pool.forEach(o=>{const b=document.createElement('button');b.className='opt';b.textContent=o.cn;b.onclick=()=>pickListen(b,o.cn);wrap.appendChild(b);});
-  lSpeak();
+  /* no auto-play — user taps speak btn */
 }
-let _lastUtt=null;
-function lSpeak(){
-  if(!lCur||!window.speechSynthesis){console.log('lSpeak: no speechSynthesis');return;}
-  const ss=window.speechSynthesis;
-  console.log('lSpeak: lCur='+lCur.en+', voices='+lVoices.length+', speaking='+ss.speaking+', pending='+ss.pending);
-  if(ss.paused){console.log('lSpeak: resuming paused');ss.resume();}
-  
-  if(!lVoices.length){
-    lVoices=ss.getVoices().filter(v=>v.lang.startsWith('en'));
-  }
-  if(!lVoices.length){
-    const v2=ss.getVoices();
-    if(v2.length) lVoices=v2.filter(v=>v.lang.startsWith('en'));
-  }
-  
-  const best=lVoices.find(v=>v.lang==='en-GB')||lVoices.find(v=>v.lang==='en-US')||lVoices.find(v=>v.lang.startsWith('en'))||null;
-  console.log('lSpeak: bestVoice='+(best?best.name:'null'));
-  
-  const doSpeak=(voiceOverride)=>{
-    if(!lCur)return;
-    const utt=new SpeechSynthesisUtterance(lCur.en);
-    _lastUtt=utt;
-    utt.lang='en-US';
-    if(voiceOverride)utt.voice=voiceOverride;
-    utt.rate=0.85;utt.pitch=1;
-    const btn=document.getElementById('l-speak-btn');
-    const ico=document.getElementById('l-speak-ico');
-    if(btn){btn.style.borderColor='var(--a)';btn.style.background='rgba(255,255,255,.1)';}
-    if(ico)ico.textContent='🔊';
-    const r1=document.getElementById('l-ring1');const r2=document.getElementById('l-ring2');if(r1)r1.style.animationPlayState='running';if(r2)r2.style.animationPlayState='running';
-    utt.onend=()=>{console.log('TTS END: '+lCur.en);if(btn){btn.style.borderColor='';btn.style.background='var(--card)';}};
-    let _retry=false;
-    utt.onerror=(e)=>{
-      console.log('TTS ERROR: '+e.error+' word='+lCur.en);
-      if(btn){btn.style.borderColor='';btn.style.background='var(--card)';}
-      if(e.error==='canceled'||e.error==='interrupted')return;
-      if(!_retry&&voiceOverride){
-        _retry=true;
-        console.log('TTS RETRY without voice');
-        setTimeout(()=>doSpeak(null),80);
-        return;
-      }
-    };
-    console.log('TTS SPEAK: '+lCur.en+' voice='+(voiceOverride?voiceOverride.name:'default'));
-    ss.speak(utt);
-  };
-  
-  doSpeak(best);
-}
+
+
 function pickListen(btn,chosen){
   if(document.querySelector('#l-opts .lk'))return;
   document.querySelectorAll('#l-opts .opt').forEach(o=>o.classList.add('lk'));
